@@ -9,27 +9,50 @@ Isaac Abakah
 
 ** Below is a draft of the scope of the project. You will also find Project Functional requirements split into Modules**
 Module 1 — Live shuttle tracking
-There are exactly two buses on campus.
+There are exactly two buses on campus. 
+
 Both buses are always shown simultaneously on the student's live map — no per-student route filtering.
+
 Each driver's device broadcasts the bus's live GPS location at regular intervals.
+
 Students see, per bus: current position on a map, current destination, and an estimated time of arrival (ETA) to their relevant stop.
+
 No boarding/alighting confirmation and no automated route optimization in v1 — this module is purely "where is it, where's it going, when will it arrive."
+
+
 Module 2 — Waiting requests (demand visibility)
+
 A student at a location (hotel / A / B / C) taps a button to signal "I'm waiting" at that location.
-This is visible to all drivers, regardless of whether a given driver is currently on an active trip — it is a standing, always-live board, not tied to a specific trip.
+
+This is visible to all drivers, regardless of whether a given driver is currently on an active trip — it is a standing, always-live 
+board, not tied to a specific trip.
+
 A student can withdraw their waiting status manually at any time.
 Clearing on boarding: rather than trying to auto-detect boarding (e.g. via GPS/geofencing — rejected as unreliable given campus network conditions and the added complexity of tuning proximity/dwell logic), the driver clears it manually:
+
 The driver performs a single bulk-clear action per location — one tap clears every active waiting check-in at that location at once (not one-by-one per student).
+
 Safety net: if neither the student withdraws nor the driver clears it, a waiting check-in automatically expires after 1 hour 30 minutes, so stale entries don't accumulate indefinitely.
+
+
 Module 3 — Special ride requests
+
 For ad-hoc destinations outside the regular shuttle routes (Walmart, a shop, the airport for a conference, etc.).
+
 Deliberately simple: no live tracking, no map, no GPS for this feature.
+
 A student submits a request specifying: destination, pickup location, and requested date/time.
+
 Both drivers see all open requests in a shared queue, in the order they were submitted.
+
 Any driver may claim any request at their own discretion — there is no assignment logic; a driver picks based on what fits their personal schedule for that day. If a driver doesn't touch a request, it stays visible and available for the other driver.
+
 Once a driver claims a request, they respond with a schedule: date, time, destination (e.g. "campus to Walmart" or "hotel to airport"), and pickup location. This schedule is emailed to the student.
+
 Once scheduled, the request is removed from the open queue — no other driver can act on it.
+
 Auto-expiry: if a request's requested date/time passes with no driver having claimed it, the request automatically expires and drops out of the queue silently. No reassignment or notification logic — it simply means no driver was able to take it.
+
 Concurrency requirement: claiming must be atomic. If two drivers attempt to claim the same request at the same moment, only one claim can succeed — this prevents two drivers showing up for the same student.
 
 
@@ -151,9 +174,15 @@ FR3.8: If a request's requested date/time passes without being claimed, the syst
 
 
 8. Design principles and key decisions
+
 Modularity: the three modules are intentionally decoupled. None depends on another to function, so each can be built, tested, and shipped independently.
+
 No GPS-based auto-detection of boarding: rejected in favor of a manual driver clear action + TTL safety net, avoiding proximity/dwell-time tuning and dependence on continuous, accurate GPS connectivity.
+
 No automated route optimization or demand-based re-routing in v1: the waiting board gives drivers visibility, but route decisions remain manual and driver-discretion-based.
+
 Driver-to-bus assignment is fixed 1:1: two drivers, two buses, no dynamic pool. The same two drivers also handle special ride requests in the gaps of their schedule, entirely at their own discretion.
+
 Silent expiry over reassignment: both waiting check-ins and special ride requests expire silently when their time window passes, rather than triggering escalation, reassignment, or notification logic — keeping v1 simple.
+
 Bulk over granular clearing: the waiting-board clear action operates per location, not per student, matching how a driver naturally experiences a stop.
