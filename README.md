@@ -112,28 +112,44 @@ Functional requirements
 Module 1 — Live tracking
 
 FR1.1: The system shall broadcast each bus's live GPS location at regular intervals from the driver's device.
+
 FR1.2: The student app shall display both buses simultaneously on a live map.
+
 FR1.3: The system shall display each bus's current destination.
+
 FR1.4: The system shall compute and display an ETA to the student's relevant stop.
 
 Module 2 — Waiting requests
 
 FR2.1: A student shall be able to submit a waiting check-in at one of the defined locations (Hotel, A, B, C).
+
 FR2.2: A student shall be able to withdraw their own active check-in at any time.
+
 FR2.3: All drivers shall see waiting check-ins across all locations in real time, regardless of their current trip status.
+
 FR2.4: A driver shall be able to bulk-clear all active check-ins at a given location with a single action.
+
 FR2.5: The system shall automatically mark a check-in as expired 1 hour 30 minutes after creation if it has not been withdrawn or cleared.
 
 Module 3 — Special ride requests
 
 FR3.1: A student shall be able to submit a special ride request specifying destination, pickup location, and requested date/time.
+
 FR3.2: All drivers shall see all open special ride requests, ordered by submission time.
+
 FR3.3: Any driver shall be able to claim an open request at their own discretion.
+
 FR3.4: Claim actions shall be atomic — if two drivers attempt to claim the same request simultaneously, only one shall succeed.
+
 FR3.5: Once a driver claims a request, they shall be able to submit a schedule (date, time, destination, pickup location) tied to that request.
+
 FR3.6: The system shall email the finalized schedule to the requesting student.
+
 FR3.7: Once scheduled, the request shall be removed from the open queue.
+
 FR3.8: If a request's requested date/time passes without being claimed, the system shall automatically expire it and remove it from the open queue, with no reassignment.
+
+
 8. Design principles and key decisions
 Modularity: the three modules are intentionally decoupled. None depends on another to function, so each can be built, tested, and shipped independently.
 No GPS-based auto-detection of boarding: rejected in favor of a manual driver clear action + TTL safety net, avoiding proximity/dwell-time tuning and dependence on continuous, accurate GPS connectivity.
