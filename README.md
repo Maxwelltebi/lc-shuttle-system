@@ -7,7 +7,7 @@ Isaac Abakah
 
 * AN UPDATE TO ALL CONTRIBUTORS *
 
-** Below is a draft of the scope of the project. You will also find Project Functional requirements split into Modules**
+** Below is a draft of the scope of the project. You will also find Project Functional requirements split into Modules **
 Module 1 — Live shuttle tracking
 There are exactly two buses on campus. 
 
