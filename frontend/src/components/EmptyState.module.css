@@ -1,0 +1,26 @@
+/* Used wherever a list has nothing in it: an empty request queue, no
+   trips yet, a waiting board with nobody checked in. Deliberately quiet
+   — an empty queue is the normal resting state, not a problem. */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+}
+
+.title {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--ink);
+}
+
+.body {
+  font-size: var(--text-body);
+  color: var(--ink-secondary);
+  max-width: 40ch;
+}
+
+.action { margin-top: var(--space-4); }

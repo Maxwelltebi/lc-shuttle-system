@@ -1,0 +1,49 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: var(--space-1) var(--space-3);
+  white-space: nowrap;
+}
+
+/* NEXT — the stop this bus is heading to */
+.next { background: var(--ink); color: var(--ink-on-dark); }
+
+/* CLAIMED BY YOU / YOURS / NEAREST */
+.accent { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border); }
+
+/* LIVE / SCHEDULED */
+.live { background: var(--live-soft); color: var(--live); }
+
+/* OFFLINE / OFF / EXPIRED */
+.muted { background: var(--offline-soft); color: var(--ink-tertiary); }
+
+/* OPEN */
+.open { background: var(--accent-soft); color: var(--accent); }
+
+/* Numeric counts on nav items. Not uppercase, and circular. */
+.count {
+  min-width: 22px;
+  height: 22px;
+  justify-content: center;
+  padding: 0 var(--space-2);
+  background: var(--accent);
+  color: var(--ink-on-dark);
+  font-size: var(--text-small);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Small leading dot used on LIVE / OFFLINE / WAITING labels. */
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}

@@ -1,0 +1,204 @@
+/* Desktop: map left, live panel right (design-png/2-student-map).
+   Mobile:  full-bleed map with a sheet over it (mobile-design/04).    */
+
+.layout { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5) var(--space-3);
+  flex: none;
+}
+
+.title {
+  font-size: var(--text-title);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+}
+
+.summary {
+  margin-top: var(--space-1);
+  font-size: var(--text-small);
+  color: var(--ink-secondary);
+  max-width: 64ch;
+}
+
+.split { flex: 1; min-height: 0; display: flex; }
+
+.mapPane { flex: 1; min-width: 0; position: relative; }
+
+.panel {
+  display: none;
+  width: 400px;
+  flex: none;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  overflow-y: auto;
+  border-left: 1px solid var(--line);
+  background: var(--ground);
+}
+
+/* --- Bus cards ---------------------------------------------------- */
+
+.busHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.busName {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--ink-secondary);
+}
+
+.busHeadline {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+}
+
+.busDetail { margin-top: var(--space-2); color: var(--ink-secondary); }
+
+/* --- Arrivals list ------------------------------------------------ */
+
+.arrivalsLabel {
+  font-size: var(--text-micro);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-tertiary);
+  padding: 0 var(--space-1);
+}
+
+.arrival {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.arrival:last-child { border-bottom: 0; }
+
+.arrivalSequence {
+  width: 18px;
+  flex: none;
+  color: var(--ink-tertiary);
+  font-size: var(--text-small);
+}
+
+.arrivalName { flex: 1; font-weight: var(--weight-medium); }
+.arrivalAddress { font-size: var(--text-small); color: var(--ink-tertiary); }
+
+.arrivalEta {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+/* The next arrival, highlighted — the one line the student came for. */
+.arrivalNext { color: var(--accent); font-weight: var(--weight-semibold); }
+
+/* --- Mobile sheet -------------------------------------------------- */
+
+/* The map is the point of this screen, so the sheet peeks rather than
+   covering it. Collapsed it shows one line per bus; tapping the handle
+   expands it to the full panel. */
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--tabbar-height);
+  z-index: 450;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-sheet);
+  transition: max-height var(--duration) var(--ease);
+  max-height: 34dvh;
+}
+
+.sheetExpanded { max-height: 78dvh; }
+
+/* The handle is the whole tap target, not just the little bar. */
+.sheetHandle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3) var(--space-5) var(--space-2);
+  background: transparent;
+  border: 0;
+  flex: none;
+}
+
+.grabber {
+  width: 38px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--line-strong);
+}
+
+.sheetHint {
+  font-size: var(--text-small);
+  color: var(--ink-tertiary);
+}
+
+.sheetBody {
+  overflow-y: auto;
+  padding: 0 var(--space-5) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Collapsed: one compact line per bus instead of the full cards. */
+.peek {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--space-5) var(--space-4);
+}
+
+.peekRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.peekLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--weight-semibold);
+}
+
+.peekValue {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--ink-secondary);
+}
+
+.peekMuted { color: var(--ink-tertiary); }
+
+@media (min-width: 900px) {
+  .panel { display: flex; }
+  .sheet { display: none; }
+  .header { padding: var(--space-8) var(--space-8) var(--space-5); }
+  .summary { font-size: var(--text-body); margin-top: var(--space-2); }
+}

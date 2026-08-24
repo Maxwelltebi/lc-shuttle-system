@@ -1,0 +1,42 @@
+/* Shared page frame: heading block, then content.
+   Mobile drops the horizontal padding down and the type size with it. */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-6) var(--space-5);
+  gap: var(--space-5);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  font-size: var(--text-title);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+}
+
+.description {
+  margin-top: var(--space-2);
+  font-size: var(--text-body);
+  color: var(--ink-secondary);
+  max-width: 68ch;
+}
+
+.body { flex: 1; min-height: 0; }
+
+/* Screens that own their full area, such as the map. */
+.flush { padding: 0; gap: 0; }
+
+@media (min-width: 900px) {
+  .screen { padding: var(--space-8); gap: var(--space-6); }
+  .flush { padding: 0; }
+}

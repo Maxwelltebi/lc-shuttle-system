@@ -1,0 +1,38 @@
+.list { display: flex; flex-direction: column; gap: var(--space-4); max-width: 900px; }
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.headMain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.destination {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.01em;
+}
+
+.reference {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--ink-tertiary);
+  white-space: nowrap;
+}
+
+.detail { margin-top: var(--space-2); color: var(--ink-secondary); }
+
+/* The line that says what actually happened — including "no driver was
+   able to take it", which is the only notice a student gets. */
+.status {
+  margin-top: var(--space-1);
+  font-size: var(--text-small);
+  color: var(--ink-tertiary);
+}

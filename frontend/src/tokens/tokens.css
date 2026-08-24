@@ -1,0 +1,100 @@
+/* ------------------------------------------------------------------
+   LC Shuttle — design tokens
+   Sampled directly from the pixels of design-png/ and mobile-design/,
+   not matched by eye.
+   Every colour, size and radius in the app comes from this file.
+   ------------------------------------------------------------------ */
+
+:root {
+  /* --- Surfaces ------------------------------------------------- */
+  --ground:            #f8f6f2;  /* app background, warm off-white   */
+  --surface:           #ffffff;  /* cards, inputs, panels            */
+  --surface-sunken:    #eeebe6;  /* disabled buttons, inert wells    */
+  --surface-inverse:   #0f1825;  /* dark marketing panel, GPS block  */
+
+  /* --- Ink ------------------------------------------------------ */
+  --ink:               #1a2744;  /* headings, primary buttons        */
+  --ink-secondary:     #5c6472;  /* body copy, descriptions          */
+  --ink-tertiary:      #8c95a6;  /* meta, timestamps, placeholders   */
+  --ink-on-dark:       #ffffff;
+  --ink-on-dark-muted: #a8b0c2;
+
+  /* --- Accents -------------------------------------------------- */
+  --accent:            #c4852a;  /* claim, "I'm waiting here", NEXT  */
+  --accent-hover:      #a96f21;
+  --accent-soft:       #fdf7ef;  /* lunch-break notice background    */
+  --accent-border:     #e8d5b5;
+
+  --live:              #3a9e70;  /* on duty, LIVE, active check-in   */
+  --live-soft:         #ebf8f2;
+  --live-border:       #c5e6d5;
+
+  --danger:            #c03530;  /* cancel check-in                  */
+  --danger-soft:       #fdf0ef;
+
+  --offline:           #98a0b0;  /* stale bus, off duty              */
+  --offline-soft:      #f2f3f5;
+
+  /* --- Lines ---------------------------------------------------- */
+  --line:              #eeebe6;  /* card borders, dividers           */
+  --line-strong:       #e0ddd8;  /* input borders                    */
+  --focus-ring:        #1a2744;
+
+  /* --- Type ----------------------------------------------------- */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+               "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo,
+               Consolas, monospace;
+
+  --text-display:  2.125rem;  /* "Know where the shuttle is."        */
+  --text-title:    1.75rem;   /* screen headings                     */
+  --text-heading:  1.3125rem; /* card headings                       */
+  --text-body:     0.9375rem;
+  --text-small:    0.8125rem;
+  --text-micro:    0.6875rem; /* uppercase eyebrow labels            */
+  --text-metric:   2.5rem;    /* the big waiting counts              */
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semibold:600;
+  --weight-bold:    700;
+
+  --leading-tight: 1.15;
+  --leading-body:  1.5;
+
+  /* --- Space ---------------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* --- Radii ---------------------------------------------------- */
+  --radius-sm:   8px;
+  --radius-md:   12px;   /* inputs, buttons                          */
+  --radius-lg:   16px;   /* cards                                    */
+  --radius-xl:   22px;   /* mobile sheets                            */
+  --radius-pill: 999px;
+
+  /* --- Elevation ------------------------------------------------ */
+  --shadow-card:  0 1px 2px rgba(22, 32, 58, 0.04);
+  --shadow-panel: 0 4px 24px rgba(22, 32, 58, 0.08);
+  --shadow-sheet: 0 -8px 32px rgba(22, 32, 58, 0.12);
+
+  /* --- Layout --------------------------------------------------- */
+  --sidebar-width: 268px;
+  --tabbar-height: 84px;
+  --content-max:   1240px;
+
+  /* --- Motion --------------------------------------------------- */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration: 180ms;
+}
+
+/* Breakpoint reference (media queries only — cannot use var()):
+   mobile  <  900px   bottom tab bar, single column
+   desktop >= 900px   left sidebar, two/three column               */

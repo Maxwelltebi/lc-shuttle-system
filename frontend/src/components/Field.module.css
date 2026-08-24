@@ -1,0 +1,32 @@
+.field { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.label {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--ink-secondary);
+}
+
+.control {
+  width: 100%;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  transition: border-color var(--duration) var(--ease);
+}
+
+.control::placeholder { color: var(--ink-tertiary); }
+.control:focus { border-color: var(--ink); outline: none; }
+
+.invalid { border-color: var(--danger); }
+
+.error { font-size: var(--text-small); color: var(--danger); }
+
+.hint { font-size: var(--text-small); color: var(--ink-tertiary); }
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}

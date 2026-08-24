@@ -1,0 +1,84 @@
+.grid { display: flex; flex-direction: column; gap: var(--space-5); }
+.main { display: flex; flex-direction: column; gap: var(--space-5); }
+
+.stopListHead { padding: var(--space-5); border-bottom: 1px solid var(--line); }
+.stopListTitle { font-size: var(--text-heading); font-weight: var(--weight-semibold); }
+.stopListHint { margin-top: var(--space-1); font-size: var(--text-small); color: var(--ink-secondary); }
+
+.stopRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.stopRow:last-child { border-bottom: 0; }
+.stopRow:hover:not(:disabled) { background: var(--ground); }
+.stopRowSelected { background: #f6f7fb; }
+.stopRow:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.stopSequence { width: 18px; flex: none; color: var(--ink-tertiary); font-size: var(--text-small); }
+.stopBody { flex: 1; min-width: 0; }
+.stopName { font-weight: var(--weight-medium); }
+.stopAddress { font-size: var(--text-small); color: var(--ink-tertiary); }
+
+.side { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.blockLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-on-dark-muted);
+  margin-bottom: var(--space-3);
+}
+
+.departures {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  line-height: 1.9;
+  color: var(--ink-on-dark);
+}
+
+.departureNote {
+  margin-top: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--accent);
+}
+
+.gpsLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-tertiary);
+  margin-bottom: var(--space-3);
+}
+
+.gps {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  line-height: 1.7;
+  color: var(--ink-secondary);
+  white-space: pre-line;
+}
+
+.waitingTitle { font-weight: var(--weight-semibold); }
+
+.waitingLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  font-weight: var(--weight-semibold);
+}
+
+@media (min-width: 900px) {
+  .grid { display: grid; grid-template-columns: 1fr 360px; gap: var(--space-6); align-items: start; }
+}

@@ -1,0 +1,15 @@
+/* The large waiting counts on the driver's board. */
+.wrap { display: flex; align-items: baseline; gap: var(--space-3); }
+
+.value {
+  font-size: var(--text-metric);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* Zero is rendered in tertiary ink so a full board reads at a glance and
+   the empty stops recede. */
+.zero { color: var(--ink-tertiary); }
+
+.label { font-size: var(--text-body); color: var(--ink-secondary); }

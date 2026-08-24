@@ -1,0 +1,60 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  transition: background var(--duration) var(--ease),
+              border-color var(--duration) var(--ease),
+              opacity var(--duration) var(--ease);
+  white-space: nowrap;
+}
+
+/* --- Sizes ------------------------------------------------------- */
+.md { padding: var(--space-4) var(--space-5); font-size: var(--text-body); }
+.lg { padding: var(--space-5) var(--space-6); font-size: 1rem; }
+.sm { padding: var(--space-3) var(--space-4); font-size: var(--text-small); }
+
+.block { display: flex; width: 100%; }
+
+/* --- Variants ---------------------------------------------------- */
+
+/* Sign in, Create account, Send schedule, Clear all */
+.primary { background: var(--ink); color: var(--ink-on-dark); }
+.primary:hover:not(:disabled) { background: #0f1729; }
+
+/* Claim, I'm waiting here, Confirm — the amber call to action */
+.accent { background: var(--accent); color: var(--ink-on-dark); }
+.accent:hover:not(:disabled) { background: var(--accent-hover); }
+
+/* Set date and time — outlined on a tinted card */
+.outline {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.outline:hover:not(:disabled) { background: var(--ground); }
+
+/* Cancel check-in */
+.danger {
+  background: var(--surface);
+  color: var(--danger);
+  border-color: var(--line);
+}
+.danger:hover:not(:disabled) { background: var(--danger-soft); }
+
+/* Not now, Cancel — text only */
+.ghost { background: transparent; color: var(--ink-tertiary); }
+.ghost:hover:not(:disabled) { color: var(--ink-secondary); }
+
+/* --- Disabled ---------------------------------------------------- */
+/* Clear all at a stop where nobody has checked in. Stays visible so the
+   board keeps its shape, but reads as clearly inert. */
+.button:disabled {
+  background: var(--surface-sunken);
+  color: var(--ink-tertiary);
+  border-color: transparent;
+}

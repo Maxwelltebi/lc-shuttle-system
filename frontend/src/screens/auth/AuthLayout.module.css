@@ -1,0 +1,115 @@
+/* Desktop: form left, dark marketing panel right (design-png/1-login).
+   Mobile:  form only, full bleed (mobile-design/03-login).            */
+
+.layout {
+  display: flex;
+  min-height: 100dvh;
+  background: var(--ground);
+}
+
+.formSide {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--space-10) var(--space-6);
+}
+
+.form {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  background: var(--ink);
+  color: var(--ink-on-dark);
+  font-size: 1.125rem;
+  font-weight: var(--weight-bold);
+}
+
+.heading {
+  font-size: var(--text-display);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.03em;
+  line-height: var(--leading-tight);
+}
+
+.subheading { color: var(--ink-secondary); }
+
+.fields { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.footnote {
+  text-align: center;
+  font-size: var(--text-small);
+  color: var(--ink-tertiary);
+}
+
+.footlink { color: var(--ink); font-weight: var(--weight-semibold); }
+
+/* --- Dark marketing panel (desktop only) -------------------------- */
+
+.aside { display: none; }
+
+.asideInner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-6);
+  height: 100%;
+  padding: var(--space-12);
+}
+
+.asideHeading {
+  font-size: 1.6rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--ink-on-dark);
+  max-width: 22ch;
+}
+
+.asideBody { color: var(--ink-on-dark-muted); max-width: 46ch; }
+
+.steps { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.step { display: flex; gap: var(--space-4); align-items: flex-start; }
+
+.stepNumber {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--ink-on-dark);
+  font-size: var(--text-small);
+}
+
+.stepText { color: var(--ink-on-dark-muted); }
+
+.asideMeta {
+  padding-top: var(--space-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: #8fa2c4;
+}
+
+@media (min-width: 900px) {
+  .formSide { align-items: center; padding: var(--space-12); }
+  .aside {
+    display: block;
+    width: 46%;
+    flex: none;
+    background: var(--surface-inverse);
+  }
+}

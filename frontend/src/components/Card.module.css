@@ -1,0 +1,39 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.padded { padding: var(--space-5); }
+
+/* Active check-in, on-duty toggle — mint wash */
+.live {
+  background: var(--live-soft);
+  border-color: var(--live-border);
+}
+
+/* Next departure, lunch-break notice — amber wash */
+.accent {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+/* Bus offline, off duty — grey wash */
+.muted {
+  background: var(--offline-soft);
+  border-color: var(--line);
+}
+
+/* GPS readout, today's departures — dark block */
+.inverse {
+  background: var(--surface-inverse);
+  border-color: transparent;
+  color: var(--ink-on-dark);
+}
+
+/* Claimed by you — amber outline without the fill */
+.highlighted {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}

@@ -1,0 +1,169 @@
+/* One component tree, two layouts.
+   < 900px  bottom tab bar, single column   (mobile-design/)
+   >= 900px left sidebar, wide content      (design-png/)              */
+
+.shell {
+  display: flex;
+  min-height: 100dvh;
+  background: var(--ground);
+}
+
+/* --- Desktop sidebar --------------------------------------------- */
+
+.sidebar {
+  display: none;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  flex: none;
+  padding: var(--space-6);
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--ink-on-dark);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.02em;
+}
+
+.wordmark { font-size: 1.0625rem; font-weight: var(--weight-semibold); }
+
+.nav { display: flex; flex-direction: column; gap: var(--space-1); }
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--ink-secondary);
+  font-weight: var(--weight-medium);
+  transition: background var(--duration) var(--ease),
+              color var(--duration) var(--ease);
+}
+
+.navItem:hover { background: var(--ground); }
+
+.navItemActive {
+  background: var(--ground);
+  color: var(--ink);
+  font-weight: var(--weight-semibold);
+  box-shadow: var(--shadow-card);
+}
+
+.navLabel { flex: 1; }
+
+/* --- Desktop user footer ------------------------------------------ */
+
+.user {
+  margin-top: auto;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--surface-sunken);
+  color: var(--ink-secondary);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.userText { flex: 1; min-width: 0; }
+.userName { font-size: var(--text-body); font-weight: var(--weight-medium); }
+.userMeta { font-size: var(--text-small); color: var(--ink-tertiary); }
+
+.signOut {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-tertiary);
+  font-size: var(--text-small);
+  white-space: nowrap;
+}
+
+.signOut:hover { background: var(--ground); color: var(--ink); }
+
+/* Mobile has no sidebar, so the sign-out lives at the end of the last
+   screen's header instead. */
+.mobileSignOut { display: block; }
+
+@media (min-width: 900px) { .mobileSignOut { display: none; } }
+
+/* --- Content ------------------------------------------------------ */
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  /* Room for the fixed tab bar on mobile. */
+  padding-bottom: var(--tabbar-height);
+}
+
+/* --- Mobile tab bar ----------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 500;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  height: var(--tabbar-height);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  position: relative;
+  color: var(--ink-tertiary);
+  font-size: var(--text-small);
+}
+
+.tabActive { color: var(--ink); font-weight: var(--weight-semibold); }
+
+/* Count badge floating over a tab icon. */
+.tabBadge {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  margin-left: 2px;
+}
+
+@media (min-width: 900px) {
+  .sidebar { display: flex; }
+  .tabbar { display: none; }
+  .main { padding-bottom: 0; }
+}
