@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import './env.js';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { Bus, Driver, Stop, Student } from './models/index.js';
@@ -51,11 +51,14 @@ const DRIVERS = [
 const DEFAULT_PASSWORD = process.env.SEED_PASSWORD ?? 'shuttle2026';
 
 /** Development login for the student side. Home stop is Hilton Property,
- *  one of the hotel properties used for student housing. */
+ *  one of the hotel properties used for student housing.
+ *
+ *  On the students subdomain, matching what sign-up now enforces — the
+ *  bare @livingstone.edu domain belongs to staff. */
 const TEST_STUDENT = {
   firstName: 'Test',
   lastName: 'Student',
-  email: 'test.student@livingstone.edu',
+  email: 'test.student@students.livingstone.edu',
   homeStopSequence: 8,
 };
 

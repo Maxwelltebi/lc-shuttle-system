@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Card, EmptyState, Metric, Notice, Toggle } from '../../components';
 import { IconArrowRight, IconCheck } from '../../components/Icon';
-import { fetchBuses, setNextStop, setOnDuty } from '../../api/tracking';
+import { setNextStop, setOnDuty } from '../../api/tracking';
 import { fetchDemand } from '../../api/waiting';
 import { usePolling } from '../../hooks/usePolling';
 import { useLocationBroadcast } from '../../hooks/useLocationBroadcast';
+import { useMyBus } from '../../hooks/useMyBus';
 import { useStops } from '../../hooks/useStops';
 import { Screen } from '../../layouts/Screen';
 import { DEPARTURES } from '../../config/stops';
-import type { ApiError, Bus, StopDemand } from '../../types';
+import type { ApiError, StopDemand } from '../../types';
 import styles from './DutyScreen.module.css';
 
 /**
@@ -22,7 +23,7 @@ import styles from './DutyScreen.module.css';
  */
 export function DutyScreen() {
   const stops = useStops();
-  const [bus, setBus] = useState<Bus | null>(null);
+  const { bus, setBus, loading } = useMyBus();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const { data: demand } = usePolling<StopDemand[]>(fetchDemand, []);
@@ -30,12 +31,6 @@ export function DutyScreen() {
   /* The device's own broadcast (FR1.1). Without this the toggle would
      flip a flag and no position would ever reach a student's map. */
   const broadcast = useLocationBroadcast(bus?.id ?? null, bus?.onDuty ?? false);
-
-  useEffect(() => {
-    fetchBuses()
-      .then((buses) => setBus(buses[0] ?? null))
-      .catch(() => undefined);
-  }, []);
 
   const onDuty = bus?.onDuty ?? false;
   const totalWaiting = demand.reduce((sum, row) => sum + row.waitingCount, 0);
@@ -61,6 +56,10 @@ export function DutyScreen() {
       setError(caught as ApiError);
     }
   }
+
+  /* Only claim there is no bus once the lookup has actually finished —
+     otherwise every driver reads "No bus assigned" for a moment on load. */
+  if (loading) return <Screen title="On duty">{null}</Screen>;
 
   if (!bus) {
     return (

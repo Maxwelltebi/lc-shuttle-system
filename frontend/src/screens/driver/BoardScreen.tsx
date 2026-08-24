@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Badge, Button, Card, Metric, Notice } from '../../components';
 import { clearStop, fetchDemand } from '../../api/waiting';
-import { fetchBuses } from '../../api/tracking';
+import { useMyBus } from '../../hooks/useMyBus';
 import { usePolling } from '../../hooks/usePolling';
 import { useStops } from '../../hooks/useStops';
 import { Screen } from '../../layouts/Screen';
-import type { ApiError, Bus, StopDemand } from '../../types';
+import type { ApiError, StopDemand } from '../../types';
 import styles from './BoardScreen.module.css';
 
 /**
@@ -18,15 +18,9 @@ import styles from './BoardScreen.module.css';
 export function BoardScreen() {
   const stops = useStops();
   const { data: demand, loading } = usePolling<StopDemand[]>(fetchDemand, []);
-  const [bus, setBus] = useState<Bus | null>(null);
+  const { bus } = useMyBus();
   const [clearing, setClearing] = useState<string | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
-
-  useEffect(() => {
-    fetchBuses()
-      .then((buses) => setBus(buses[0] ?? null))
-      .catch(() => undefined);
-  }, []);
 
   const demandByStop = useMemo(
     () => new Map(demand.map((row) => [row.stopId, row])),

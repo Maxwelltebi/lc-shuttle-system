@@ -92,7 +92,7 @@ export function SignUpScreen() {
       subheading={
         role === 'driver'
           ? 'Driver accounts are approved by transportation staff.'
-          : 'Only @livingstone.edu addresses can register.'
+          : 'Register with your @students.livingstone.edu address.'
       }
       footnote={
         <>
@@ -156,7 +156,11 @@ export function SignUpScreen() {
             label="School email"
             type="email"
             autoComplete="email"
-            placeholder="name@livingstone.edu"
+            placeholder={
+              role === 'driver'
+                ? 'name@livingstone.edu'
+                : 'name@students.livingstone.edu'
+            }
             value={form.email}
             onChange={(event) => update('email', event.target.value)}
             error={error?.fields?.email}

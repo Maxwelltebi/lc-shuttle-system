@@ -77,7 +77,11 @@ export function SignInScreen() {
             label="School email"
             type="email"
             autoComplete="email"
-            placeholder="name@livingstone.edu"
+            placeholder={
+              role === 'driver'
+                ? 'name@livingstone.edu'
+                : 'name@students.livingstone.edu'
+            }
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             error={error?.fields?.email}

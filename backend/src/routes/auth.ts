@@ -1,13 +1,23 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import type { AuthSession, CurrentUser } from '../../../shared/types';
+import type { AuthSession, CurrentUser, Role } from '../../../shared/types';
 import { Driver, Student } from '../models/index.js';
 import { fail, issueToken, requireAuth } from '../middleware/auth.js';
 import { toDriver, toStudent } from '../serialise.js';
 
 export const authRouter = Router();
 
-const SCHOOL_DOMAIN = '@livingstone.edu';
+/**
+ * Livingstone runs two separate address spaces, and the difference is
+ * exactly the student/staff split this app already cares about:
+ * students get the `students.` subdomain, employees get the bare one.
+ *
+ * Note the leading `@`: it is what keeps STAFF_DOMAIN from also matching
+ * `mtebi88@students.livingstone.edu`, which does end in
+ * "livingstone.edu". Do not drop it.
+ */
+const STUDENT_DOMAIN = '@students.livingstone.edu';
+const STAFF_DOMAIN = '@livingstone.edu';
 const MIN_PASSWORD = 8;
 
 interface SignUpBody {
@@ -20,17 +30,30 @@ interface SignUpBody {
 }
 
 /** Field-level validation, returned in ApiError.fields for the form. */
-function validateSignUp(body: SignUpBody): Record<string, string> {
+function validateSignUp(body: SignUpBody, role: Role): Record<string, string> {
   const fields: Record<string, string> = {};
 
   if (!body.firstName?.trim()) fields.firstName = 'Required.';
   if (!body.lastName?.trim()) fields.lastName = 'Required.';
 
   const email = body.email?.trim().toLowerCase() ?? '';
+  const expected = role === 'driver' ? STAFF_DOMAIN : STUDENT_DOMAIN;
+
   if (!email) {
     fields.email = 'Required.';
-  } else if (!email.endsWith(SCHOOL_DOMAIN)) {
-    fields.email = `Use your ${SCHOOL_DOMAIN} address.`;
+  } else if (!email.endsWith(expected)) {
+    /* A valid address on the *other* side of the split almost always
+       means the wrong tab is selected, not a typo. Saying "use your
+       @livingstone.edu address" to a student holding a perfectly good
+       student address sends them looking for an account they don't
+       have. */
+    if (role === 'driver' && email.endsWith(STUDENT_DOMAIN)) {
+      fields.email = 'That is a student address. Choose Student above.';
+    } else if (role === 'student' && email.endsWith(STAFF_DOMAIN)) {
+      fields.email = 'That is a staff address. Choose Driver above.';
+    } else {
+      fields.email = `Use your ${expected} address.`;
+    }
   }
 
   if (!body.password || body.password.length < MIN_PASSWORD) {
@@ -45,7 +68,7 @@ function validateSignUp(body: SignUpBody): Record<string, string> {
 
 authRouter.post('/signup/student', async (req, res) => {
   const body = req.body as SignUpBody;
-  const fields = validateSignUp(body);
+  const fields = validateSignUp(body, 'student');
   if (Object.keys(fields).length) {
     return fail(res, 422, 'validation_failed', 'Check the form.', fields);
   }
@@ -81,7 +104,7 @@ authRouter.post('/signup/student', async (req, res) => {
  */
 authRouter.post('/signup/driver', async (req, res) => {
   const body = req.body as SignUpBody;
-  const fields = validateSignUp(body);
+  const fields = validateSignUp(body, 'driver');
   if (Object.keys(fields).length) {
     return fail(res, 422, 'validation_failed', 'Check the form.', fields);
   }

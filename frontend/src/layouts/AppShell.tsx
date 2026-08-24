@@ -11,6 +11,7 @@ import {
   IconPower,
 } from '../components/Icon';
 import type { CurrentUser } from '../types';
+import { useMyBus } from '../hooks/useMyBus';
 import { useStops } from '../hooks/useStops';
 import styles from './AppShell.module.css';
 
@@ -48,15 +49,18 @@ function initials(user: CurrentUser) {
 }
 
 /** Secondary line under the user's name: their stop, or their bus. */
-function userMeta(user: CurrentUser, stopName: string | null) {
+function userMeta(user: CurrentUser, stopName: string | null, busLabel: string | null) {
   if (user.role === 'driver') {
-    return user.busId ? `${user.busId} · driver` : 'Driver';
+    /* The label ("Bus 2"), never user.busId — that is a raw ObjectId,
+       which meant the sidebar was printing a 24-character hex string. */
+    return busLabel ? `${busLabel} · driver` : 'Driver';
   }
   return stopName ?? 'No usual stop set';
 }
 
 export function AppShell({ nav, user, onSignOut }: AppShellProps) {
   const stops = useStops();
+  const { bus } = useMyBus();
 
   /* The sidebar shows a student's usual stop by name. Passing null here
      was making every student read "No usual stop set" even when they had
@@ -98,7 +102,9 @@ export function AppShell({ nav, user, onSignOut }: AppShellProps) {
                 {user.firstName} {user.lastName}
               </span>
               <br />
-              <span className={styles.userMeta}>{userMeta(user, homeStopName)}</span>
+              <span className={styles.userMeta}>
+                {userMeta(user, homeStopName, bus?.label ?? null)}
+              </span>
             </span>
             <button type="button" className={styles.signOut} onClick={onSignOut}>
               Sign out
