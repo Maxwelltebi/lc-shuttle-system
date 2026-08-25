@@ -56,6 +56,7 @@ app.use(
 );
 
 async function start() {
+   console.log('MONGO_URL seen by app:', MONGO_URL);
   await mongoose.connect(MONGO_URL);
   console.log(`Mongo connected: ${MONGO_URL}`);
   app.listen(PORT, () => {
