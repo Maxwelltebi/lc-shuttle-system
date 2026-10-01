@@ -30,7 +30,7 @@ export function Toggle({
       className={styles.wrap}
       onClick={() => onChange(!checked)}
     >
-      <span>
+      <span className={styles.copy}>
         <span className={styles.label}>{label}</span>
         {description && <span className={styles.description}>{description}</span>}
       </span>
