@@ -17,7 +17,7 @@
 }
 
 .control::placeholder { color: var(--ink-tertiary); }
-.control:focus { border-color: var(--ink); outline: none; }
+.control:focus { border-color: var(--accent); outline: none; }
 
 .invalid { border-color: var(--danger); }
 

@@ -11,8 +11,9 @@
   white-space: nowrap;
 }
 
-/* NEXT — the stop this bus is heading to */
-.next { background: var(--ink); color: var(--ink-on-dark); }
+/* NEXT — the stop this bus is heading to. Blue, like the next-stop
+   pin on the map. */
+.next { background: var(--accent); color: var(--ink-on-dark); }
 
 /* CLAIMED BY YOU / YOURS / NEAREST */
 .accent { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border); }

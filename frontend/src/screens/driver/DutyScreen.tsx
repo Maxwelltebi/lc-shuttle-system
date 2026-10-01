@@ -59,11 +59,11 @@ export function DutyScreen() {
 
   /* Only claim there is no bus once the lookup has actually finished —
      otherwise every driver reads "No bus assigned" for a moment on load. */
-  if (loading) return <Screen title="On duty">{null}</Screen>;
+  if (loading) return <Screen title="On duty" backTo="/board" backLabel="Board">{null}</Screen>;
 
   if (!bus) {
     return (
-      <Screen title="On duty">
+      <Screen title="On duty" backTo="/board" backLabel="Board">
         <Card>
           <EmptyState
             title="No bus assigned"
@@ -78,6 +78,8 @@ export function DutyScreen() {
     <Screen
       title="On duty"
       description="While you're on duty this device sends its location every 10 seconds. Off means students can't see you at all."
+      backTo="/board"
+      backLabel="Board"
     >
       <div className={styles.grid}>
         <div className={styles.main}>

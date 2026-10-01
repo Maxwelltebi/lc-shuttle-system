@@ -59,7 +59,7 @@ export function WaitingScreen() {
 
   if (stops.length === 0) {
     return (
-      <Screen title="I'm waiting">
+      <Screen title="I'm waiting" backTo="/map" backLabel="Map">
         <Card>
           <EmptyState
             title="No stops available"
@@ -74,6 +74,8 @@ export function WaitingScreen() {
     <Screen
       title="I'm waiting"
       description="Tell both drivers someone is standing at your stop. One check-in at a time."
+      backTo="/map"
+      backLabel="Map"
     >
       <div className={styles.split}>
         <div className={styles.listPane}>

@@ -60,6 +60,8 @@ export function RequestScreen() {
     <Screen
       title="Request a ride"
       description="For destinations off the regular loop — Walmart, a shop, the airport. No live tracking; a driver claims it and emails you a time."
+      backTo="/map"
+      backLabel="Map"
     >
       <Card style={{ maxWidth: 840 }}>
         <form

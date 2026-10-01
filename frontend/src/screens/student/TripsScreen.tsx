@@ -17,7 +17,7 @@ export function TripsScreen() {
   const { data: requests } = usePolling<RideRequest[]>(fetchMyRequests, [], 30_000);
 
   return (
-    <Screen title="My requests" description="Off-route trips you've asked for, newest first.">
+    <Screen title="My requests" description="Off-route trips you've asked for, newest first." backTo="/map" backLabel="Map">
       {requests.length === 0 ? (
         <Card>
           <EmptyState

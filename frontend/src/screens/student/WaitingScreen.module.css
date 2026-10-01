@@ -28,7 +28,7 @@
 
 .option:hover:not(:disabled) { border-color: var(--line-strong); }
 
-.optionSelected { border-color: var(--ink); background: #f6f7fb; }
+.optionSelected { border-color: var(--accent); background: var(--accent-soft); }
 
 /* While a check-in is active, the other stops are inert: a student holds
    one at a time, so tapping another would silently move them. */
@@ -44,7 +44,7 @@
   place-items: center;
 }
 
-.radioSelected { border-color: var(--ink); background: var(--ink); color: var(--ink-on-dark); }
+.radioSelected { border-color: var(--accent); background: var(--accent); color: var(--ink-on-dark); }
 
 .optionBody { flex: 1; min-width: 0; }
 .optionName { font-weight: var(--weight-semibold); }
@@ -87,14 +87,14 @@
   font-weight: var(--weight-semibold);
 }
 
-/* Mobile confirm bar pinned above the tab bar. */
+/* Mobile confirm bar pinned to the bottom edge (no tab bar anymore). */
 .confirmBar {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: var(--tabbar-height);
+  bottom: 0;
   z-index: 450;
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-4) var(--space-5) calc(var(--space-4) + env(safe-area-inset-bottom));
   background: var(--surface);
   border-top: 1px solid var(--line);
 }

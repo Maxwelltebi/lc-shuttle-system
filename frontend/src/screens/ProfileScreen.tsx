@@ -32,7 +32,12 @@ export function ProfileScreen() {
   const initials = `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase();
 
   return (
-    <Screen title="Profile" description="Your account on this device.">
+    <Screen
+      title="Profile"
+      description="Your account on this device."
+      backTo={user.role === 'driver' ? '/board' : '/map'}
+      backLabel={user.role === 'driver' ? 'Board' : 'Map'}
+    >
       <div className={styles.wrap}>
         <Card>
           <div className={styles.head}>

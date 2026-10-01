@@ -1,44 +1,44 @@
 /* ------------------------------------------------------------------
    LC Shuttle — design tokens
-   Sampled directly from the pixels of design-png/ and mobile-design/,
-   not matched by eye.
+   White-and-blue rider theme, sampled from the LC Shuttle home mock:
+   light grey page, white cards, blue primary.
    Every colour, size and radius in the app comes from this file.
    ------------------------------------------------------------------ */
 
 :root {
   /* --- Surfaces ------------------------------------------------- */
-  --ground:            #f8f6f2;  /* app background, warm off-white   */
+  --ground:            #edf0f4;  /* app background, light grey-blue    */
   --surface:           #ffffff;  /* cards, inputs, panels            */
-  --surface-sunken:    #eeebe6;  /* disabled buttons, inert wells    */
+  --surface-sunken:    #e2e8f0;  /* disabled buttons, inert wells    */
   --surface-inverse:   #0f1825;  /* dark marketing panel, GPS block  */
 
   /* --- Ink ------------------------------------------------------ */
-  --ink:               #1a2744;  /* headings, primary buttons        */
-  --ink-secondary:     #5c6472;  /* body copy, descriptions          */
-  --ink-tertiary:      #8c95a6;  /* meta, timestamps, placeholders   */
+  --ink:               #0f172a;  /* headings, primary buttons        */
+  --ink-secondary:     #475569;  /* body copy, descriptions          */
+  --ink-tertiary:      #94a3b8;  /* meta, timestamps, placeholders   */
   --ink-on-dark:       #ffffff;
   --ink-on-dark-muted: #a8b0c2;
 
   /* --- Accents -------------------------------------------------- */
-  --accent:            #c4852a;  /* claim, "I'm waiting here", NEXT  */
-  --accent-hover:      #a96f21;
-  --accent-soft:       #fdf7ef;  /* lunch-break notice background    */
-  --accent-border:     #e8d5b5;
+  --accent:            #1f66e5;  /* claim, "I'm waiting here", NEXT  */
+  --accent-hover:      #1a56c4;
+  --accent-soft:       #eff6ff;  /* lunch-break notice background    */
+  --accent-border:     #bfdbfe;
 
-  --live:              #3a9e70;  /* on duty, LIVE, active check-in   */
-  --live-soft:         #ebf8f2;
-  --live-border:       #c5e6d5;
+  --live:              #16a34a;  /* on duty, LIVE, active check-in   */
+  --live-soft:         #e9f9f0;
+  --live-border:       #b7e5c9;
 
-  --danger:            #c03530;  /* cancel check-in                  */
-  --danger-soft:       #fdf0ef;
+  --danger:            #dc2626;  /* cancel check-in                  */
+  --danger-soft:       #fef2f2;
 
-  --offline:           #98a0b0;  /* stale bus, off duty              */
-  --offline-soft:      #f2f3f5;
+  --offline:           #94a3b8;  /* stale bus, off duty              */
+  --offline-soft:      #f1f5f9;
 
   /* --- Lines ---------------------------------------------------- */
-  --line:              #eeebe6;  /* card borders, dividers           */
-  --line-strong:       #e0ddd8;  /* input borders                    */
-  --focus-ring:        #1a2744;
+  --line:              #e2e8f0;  /* card borders, dividers           */
+  --line-strong:       #cbd5e1;  /* input borders                    */
+  --focus-ring:        #2563eb;
 
   /* --- Type ----------------------------------------------------- */
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display",
@@ -76,12 +76,12 @@
   /* --- Radii ---------------------------------------------------- */
   --radius-sm:   8px;
   --radius-md:   12px;   /* inputs, buttons                          */
-  --radius-lg:   16px;   /* cards                                    */
+  --radius-lg:   20px;   /* cards, matching the Maps page            */
   --radius-xl:   22px;   /* mobile sheets                            */
   --radius-pill: 999px;
 
   /* --- Elevation ------------------------------------------------ */
-  --shadow-card:  0 1px 2px rgba(22, 32, 58, 0.04);
+  --shadow-card:  0 4px 14px rgba(15, 23, 42, 0.08);
   --shadow-panel: 0 4px 24px rgba(22, 32, 58, 0.08);
   --shadow-sheet: 0 -8px 32px rgba(22, 32, 58, 0.12);
 

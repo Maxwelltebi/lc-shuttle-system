@@ -85,6 +85,8 @@ export function QueueScreen() {
     <Screen
       title="Request queue"
       description="Open requests, oldest first. Claiming one takes it off the other driver's list."
+      backTo="/board"
+      backLabel="Board"
     >
       <div className={styles.layout}>
         <div>

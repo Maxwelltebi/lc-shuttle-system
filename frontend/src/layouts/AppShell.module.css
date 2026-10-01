@@ -1,5 +1,6 @@
 /* One component tree, two layouts.
-   < 900px  bottom tab bar, single column   (mobile-design/)
+   < 900px  full-width content, hub-and-spoke navigation (Map drawer,
+            per-screen back links)
    >= 900px left sidebar, wide content      (design-png/)              */
 
 .shell {
@@ -120,50 +121,8 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  /* Room for the fixed tab bar on mobile. */
-  padding-bottom: var(--tabbar-height);
-}
-
-/* --- Mobile tab bar ----------------------------------------------- */
-
-.tabbar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 500;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  height: var(--tabbar-height);
-  padding-bottom: env(safe-area-inset-bottom);
-  background: var(--surface);
-  border-top: 1px solid var(--line);
-}
-
-.tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  position: relative;
-  color: var(--ink-tertiary);
-  font-size: var(--text-small);
-}
-
-.tabActive { color: var(--ink); font-weight: var(--weight-semibold); }
-
-/* Count badge floating over a tab icon. */
-.tabBadge {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  margin-left: 2px;
 }
 
 @media (min-width: 900px) {
   .sidebar { display: flex; }
-  .tabbar { display: none; }
-  .main { padding-bottom: 0; }
 }

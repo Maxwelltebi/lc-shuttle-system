@@ -19,7 +19,7 @@
 
 .stopRow:last-child { border-bottom: 0; }
 .stopRow:hover:not(:disabled) { background: var(--ground); }
-.stopRowSelected { background: #f6f7fb; }
+.stopRowSelected { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
 .stopRow:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .stopSequence { width: 18px; flex: none; color: var(--ink-tertiary); font-size: var(--text-small); }
@@ -49,7 +49,9 @@
   margin-top: var(--space-3);
   font-family: var(--font-mono);
   font-size: var(--text-small);
-  color: var(--accent);
+  /* Light blue: this note sits on the dark departures block, where the
+     standard accent blue would be unreadable. */
+  color: #93c5fd;
 }
 
 .gpsLabel {

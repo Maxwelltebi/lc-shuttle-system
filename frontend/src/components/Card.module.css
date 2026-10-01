@@ -7,13 +7,13 @@
 
 .padded { padding: var(--space-5); }
 
-/* Active check-in, on-duty toggle — mint wash */
+/* Active check-in, on-duty toggle — green wash */
 .live {
   background: var(--live-soft);
   border-color: var(--live-border);
 }
 
-/* Next departure, lunch-break notice — amber wash */
+/* Next departure, lunch-break notice — blue wash */
 .accent {
   background: var(--accent-soft);
   border-color: var(--accent-border);
@@ -32,7 +32,7 @@
   color: var(--ink-on-dark);
 }
 
-/* Claimed by you — amber outline without the fill */
+/* Claimed by you — blue outline without the fill */
 .highlighted {
   border-color: var(--accent);
   background: var(--accent-soft);

@@ -119,28 +119,6 @@ export function AppShell({ nav, user, onSignOut }: AppShellProps) {
       <main className={styles.main}>
         <Outlet />
       </main>
-
-      <nav className={styles.tabbar}>
-        {nav.map(({ to, label, shortLabel, icon: Icon, count }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `${styles.tab} ${isActive ? styles.tabActive : ''}`
-            }
-          >
-            <span style={{ position: 'relative' }}>
-              <Icon size={22} />
-              {count ? (
-                <span className={styles.tabBadge}>
-                  <Badge tone="count">{count}</Badge>
-                </span>
-              ) : null}
-            </span>
-            {shortLabel ?? label}
-          </NavLink>
-        ))}
-      </nav>
     </div>
   );
 }

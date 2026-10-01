@@ -22,11 +22,12 @@
 
 /* --- Variants ---------------------------------------------------- */
 
-/* Sign in, Create account, Send schedule, Clear all */
-.primary { background: var(--ink); color: var(--ink-on-dark); }
-.primary:hover:not(:disabled) { background: #0f1729; }
+/* Sign in, Create account, Send schedule, Clear all — same blue as
+   the Maps page check-in call to action */
+.primary { background: var(--accent); color: var(--ink-on-dark); }
+.primary:hover:not(:disabled) { background: var(--accent-hover); }
 
-/* Claim, I'm waiting here, Confirm — the amber call to action */
+/* Claim, I'm waiting here, Confirm — the blue call to action */
 .accent { background: var(--accent); color: var(--ink-on-dark); }
 .accent:hover:not(:disabled) { background: var(--accent-hover); }
 

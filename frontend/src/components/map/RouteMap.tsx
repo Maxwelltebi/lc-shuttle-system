@@ -103,7 +103,7 @@ export function RouteMap({
         <Polyline
           positions={loop}
           pathOptions={{
-            color: '#8c95a6',
+            color: '#94a3b8',
             weight: 2,
             dashArray: '2 6',
             opacity: 0.9,
