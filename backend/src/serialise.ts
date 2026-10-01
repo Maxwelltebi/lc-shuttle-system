@@ -86,8 +86,8 @@ export function toDriver(doc: Doc): Driver {
  */
 export function busStatus(doc: Doc): BusStatus {
   if (!doc.onDuty) return 'off_duty';
-  if (!doc.lastPingAt) return 'offline';
-  const age = Date.now() - new Date(doc.lastPingAt).getTime();
+  if (!doc.measuredAt || typeof doc.lat !== 'number' || typeof doc.lng !== 'number' || !doc.lastPingAt) return 'offline';
+  const age = Date.now() - new Date(doc.measuredAt).getTime();
   return age > STALE_PING_MS ? 'offline' : 'live';
 }
 
@@ -99,6 +99,7 @@ export function toBus(doc: Doc, scheduleOffsetMinutes: number | null): Bus {
   return {
     id: id(doc._id),
     label: doc.label,
+    revision: doc.revision ?? 0,
     status,
     onDuty: Boolean(doc.onDuty),
     /* Off duty means no position at all, not a stale one. A student

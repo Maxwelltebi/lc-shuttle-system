@@ -42,7 +42,7 @@ export function usePolling<T>(
 
     function schedule() {
       window.clearTimeout(timer);
-      if (document.hidden) return;
+      if (!active || document.hidden) return;
       timer = window.setTimeout(async () => {
         await tick();
         schedule();

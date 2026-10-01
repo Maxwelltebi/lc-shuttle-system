@@ -32,7 +32,7 @@ const from = process.env.RESEND_FROM ?? 'LC Shuttle <onboarding@resend.dev>';
 /** Development only: send everything here instead of the real student. */
 const redirectTo = process.env.EMAIL_REDIRECT_TO?.trim() || null;
 
-const resend = apiKey ? new Resend(apiKey) : null;
+
 
 export interface ScheduleEmailInput {
   to: string;
@@ -45,6 +45,7 @@ export interface ScheduleEmailInput {
 
 export interface EmailResult {
   ok: boolean;
+  providerMessageId?: string;
   error: string | null;
   /** Where the message actually went, when redirected in development. */
   deliveredTo: string | null;
@@ -168,45 +169,29 @@ function explain(message: string): string {
   return message;
 }
 
-export async function sendScheduleEmail(
-  input: ScheduleEmailInput,
-): Promise<EmailResult> {
-  if (!resend) {
-    return {
-      ok: false,
-      error: 'No email service is configured, so nothing was sent.',
-      deliveredTo: null,
-    };
-  }
-
+export function prepareScheduleEmail(input: ScheduleEmailInput) {
   const recipient = redirectTo ?? input.to;
-  const redirectNotice = redirectTo
-    ? `Development copy. This message was addressed to ${input.to}.`
-    : null;
+  const notice = redirectTo ? 'Development copy. This message was addressed to ' + input.to : null;
+  return {
+    from, to: recipient,
+    subject: 'Your ride to ' + input.destination + ' ? ' + formatTrip(input.tripAt),
+    html: renderHtml(input, notice), text: renderText(input, notice),
+  };
+}
 
+/** A frozen payload plus a stable key makes restart retries safe within the provider window. */
+export async function sendPreparedEmail(payload: ReturnType<typeof prepareScheduleEmail>, idempotencyKey: string): Promise<EmailResult> {
+  if (!apiKey) return { ok: false, error: 'No email service is configured.', deliveredTo: null };
   try {
-    const { error } = await resend.emails.send({
-      from,
-      to: recipient,
-      subject: `Your ride to ${input.destination} — ${formatTrip(input.tripAt)}`,
-      html: renderHtml(input, redirectNotice),
-      text: renderText(input, redirectNotice),
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST', signal: AbortSignal.timeout(20_000),
+      headers: { Authorization: 'Bearer ' + apiKey, 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+      body: JSON.stringify(payload),
     });
-
-    if (error) {
-      return {
-        ok: false,
-        error: explain(error.message ?? 'The message was rejected.'),
-        deliveredTo: null,
-      };
-    }
-
-    return { ok: true, error: null, deliveredTo: recipient };
-  } catch (caught) {
-    return {
-      ok: false,
-      error: caught instanceof Error ? explain(caught.message) : 'Unknown send failure.',
-      deliveredTo: null,
-    };
+    const result = await response.json() as { id?: string; message?: string };
+    if (!response.ok || !result.id) return { ok: false, error: explain(result.message ?? 'Email provider rejected the message.'), deliveredTo: null };
+    return { ok: true, error: null, deliveredTo: payload.to, providerMessageId: result.id };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Email request failed.', deliveredTo: null };
   }
 }

@@ -68,6 +68,8 @@ export interface Stop {
 export type BusStatus = 'live' | 'offline' | 'off_duty';
 
 export interface Bus {
+  /** Monotonic server revision across all bus mutations. */
+  revision: number;
   id: string;
   /** "Bus 1" */
   label: string;
@@ -93,8 +95,7 @@ export interface BusPosition {
   /** When the GPS fix was measured on the device. Distinct from
    *  lastPingAt (server receipt). Null for legacy pings. */
   measuredAt: string | null;
-  /** Monotonic per-device sequence. Used to reject older retries so
-   *  markers cannot move backward. Null for legacy pings. */
+  /** Diagnostic device sequence; ordering uses measuredAt across reloads. */
   seq: number | null;
 }
 
@@ -107,7 +108,7 @@ export interface PositionPingInput {
   accuracyMeters: number | null;
   /** ISO timestamp from the device GPS fix. */
   measuredAt: string;
-  /** Monotonic counter per driver session. */
+  /** Diagnostic counter; not used for cross-session ordering. */
   seq: number;
 }
 

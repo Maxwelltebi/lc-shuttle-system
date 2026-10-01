@@ -74,5 +74,5 @@ export function fetchFailedEmails() {
       lastError: string | null;
       sentAt: string | null;
     }>
-  >('/api/schedules/failed', { fallback: [] });
+  >('/api/schedules/deliveries', { fallback: [] });
 }

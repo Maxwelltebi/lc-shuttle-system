@@ -12,6 +12,9 @@ const PING_INTERVAL_MS = 10_000;
 export type PermissionState = 'granted' | 'denied' | 'prompt' | 'unavailable';
 
 interface TrackingValue {
+  bus: ReturnType<typeof useMyBus>['bus'];
+  setBus: ReturnType<typeof useMyBus>['setBus'];
+  loading: boolean;
   permission: PermissionState;
   transport: TransportMode;
   lastFixAt: string | null;
@@ -22,6 +25,7 @@ interface TrackingValue {
 }
 
 const TrackingContext = createContext<TrackingValue>({
+  bus: null, setBus: () => {}, loading: true,
   permission: 'prompt',
   transport: 'offline',
   lastFixAt: null,
@@ -42,7 +46,7 @@ export function useTracking() {
  */
 export function TrackingProvider({ children }: { children: ReactNode }) {
   const { user } = useSession();
-  const { bus } = useMyBus();
+  const { bus, setBus, loading } = useMyBus();
   const [permission, setPermission] = useState<PermissionState>('prompt');
   const [transport, setTransport] = useState<TransportMode>('offline');
   const [lastFixAt, setLastFixAt] = useState<string | null>(null);
@@ -52,7 +56,6 @@ export function TrackingProvider({ children }: { children: ReactNode }) {
   const [position, setPosition] = useState<{ lat: number; lng: number; accuracy: number | null } | null>(null);
 
   const latest = useRef<{ lat: number; lng: number; accuracy: number | null; measuredAt: string } | null>(null);
-  const seq = useRef(0);
   const socketRef = useRef<Socket | null>(null);
 
   const busId = user?.role === 'driver' ? (user.busId ?? null) : null;
@@ -95,7 +98,7 @@ export function TrackingProvider({ children }: { children: ReactNode }) {
     socket.on('connect', () => setConnected(true));
     socket.on('disconnect', () => {
       setConnected(false);
-      setTransport((t) => (active ? 'http' : t));
+      setTransport('offline');
     });
     return () => {
       socket.disconnect();
@@ -108,7 +111,8 @@ export function TrackingProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!active || !busId) {
       latest.current = null;
-      if (!busId) setTransport('offline');
+      setTransport('offline');
+      setPosition(null);
       return;
     }
     if (!('geolocation' in navigator)) {
@@ -123,7 +127,7 @@ export function TrackingProvider({ children }: { children: ReactNode }) {
           accuracy: next.coords.accuracy ? Math.round(next.coords.accuracy) : null,
           measuredAt: new Date(next.timestamp).toISOString(),
         };
-        setLastFixAt(new Date().toISOString());
+        setLastFixAt(new Date(next.timestamp).toISOString());
         setPosition({
           lat: next.coords.latitude,
           lng: next.coords.longitude,
@@ -132,43 +136,57 @@ export function TrackingProvider({ children }: { children: ReactNode }) {
         setPermission('granted');
       },
       (caught) => {
+        latest.current = null;
+        setLastUploadError(caught.message);
         setPermission(caught.code === caught.PERMISSION_DENIED ? 'denied' : 'prompt');
       },
       { enableHighAccuracy: true, maximumAge: PING_INTERVAL_MS, timeout: 20_000 },
     );
 
+    let cancelled = false;
+    let sending = false;
+    let uploadedMeasurement: string | null = null;
     const timer = window.setInterval(async () => {
       const fix = latest.current;
-      if (!fix) return;
-      seq.current += 1;
-      const payload = {
-        busId,
-        lat: fix.lat,
-        lng: fix.lng,
-        accuracyMeters: fix.accuracy,
-        measuredAt: fix.measuredAt,
-        seq: seq.current,
-      };
-      // Primary: socket. Fallback: HTTP.
-      const viaSocket = await sendViaSocket(payload);
-      if (viaSocket) {
-        setTransport('socket');
-        setLastUploadAt(new Date().toISOString());
-        setLastUploadError(null);
-        return;
-      }
+      if (!fix || sending || fix.measuredAt === uploadedMeasurement) return;
+      if (Date.now() - Date.parse(fix.measuredAt) > 60_000) { setLastUploadError('Waiting for fresh GPS.'); return; }
+      sending = true;
       try {
-        await pingPosition(busId, payload);
-        setTransport(socketRef.current?.connected ? 'http' : 'http');
-        setLastUploadAt(new Date().toISOString());
-        setLastUploadError(null);
-      } catch (e) {
-        setTransport('offline');
-        setLastUploadError((e as { message?: string })?.message ?? 'Upload failed. Retrying…');
-      }
+        const payload = {
+          busId,
+          lat: fix.lat,
+          lng: fix.lng,
+          accuracyMeters: fix.accuracy,
+          measuredAt: fix.measuredAt,
+          seq: Date.parse(fix.measuredAt),
+        };
+        // Primary: socket. Fallback: HTTP.
+        const viaSocket = await sendViaSocket(payload);
+        if (cancelled) return;
+        if (viaSocket) {
+          uploadedMeasurement = fix.measuredAt;
+          setTransport('socket');
+          setLastUploadAt(new Date().toISOString());
+          setLastUploadError(null);
+          return;
+        }
+        try {
+          await pingPosition(busId, payload);
+          if (cancelled) return;
+          uploadedMeasurement = fix.measuredAt;
+          setTransport('http');
+          setLastUploadAt(new Date().toISOString());
+          setLastUploadError(null);
+        } catch (e) {
+          if (cancelled) return;
+          setTransport('offline');
+          setLastUploadError((e as { message?: string })?.message ?? 'Upload failed. Retrying…');
+        }
+      } finally { sending = false; }
     }, PING_INTERVAL_MS);
 
     return () => {
+      cancelled = true;
       navigator.geolocation.clearWatch(watchId);
       window.clearInterval(timer);
     };
@@ -184,8 +202,8 @@ export function TrackingProvider({ children }: { children: ReactNode }) {
   }, [onDuty, busId]);
 
   const value = useMemo(
-    () => ({ permission, transport, lastFixAt, lastUploadAt, lastUploadError, connected, position }),
-    [permission, transport, lastFixAt, lastUploadAt, lastUploadError, connected, position],
+    () => ({ bus, setBus, loading, permission, transport, lastFixAt, lastUploadAt, lastUploadError, connected, position }),
+    [bus, setBus, loading, permission, transport, lastFixAt, lastUploadAt, lastUploadError, connected, position],
   );
   return <TrackingContext.Provider value={value}>{children}</TrackingContext.Provider>;
 }

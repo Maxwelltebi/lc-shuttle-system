@@ -6,7 +6,6 @@ import { setNextStop, setOnDuty } from '../../api/tracking';
 import { fetchDemand } from '../../api/waiting';
 import { usePolling } from '../../hooks/usePolling';
 import { useTracking } from '../../hooks/TrackingProvider';
-import { useMyBus } from '../../hooks/useMyBus';
 import { useStops } from '../../hooks/useStops';
 import { Screen } from '../../layouts/Screen';
 import { DEPARTURES } from '../../config/stops';
@@ -23,14 +22,15 @@ import styles from './DutyScreen.module.css';
  */
 export function DutyScreen() {
   const stops = useStops();
-  const { bus, setBus, loading } = useMyBus();
+  const tracking = useTracking();
+  const { bus, setBus, loading } = tracking;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const { data: demand } = usePolling<StopDemand[]>(fetchDemand, []);
 
   /* Persistent broadcast lives in TrackingProvider (survives navigation
      between Duty/Board/Queue). This screen only reads its state. */
-  const tracking = useTracking();
+
 
   const onDuty = bus?.onDuty ?? false;
   const totalWaiting = demand.reduce((sum, row) => sum + row.waitingCount, 0);

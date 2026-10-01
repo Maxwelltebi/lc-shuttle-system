@@ -1,7 +1,7 @@
 /** Position validation: coordinates, accuracy, timestamp age, clock skew, ordering. */
 
 export const MAX_PING_AGE_MS = 60_000;
-export const MAX_CLOCK_SKEW_MS = 5 * 60_000;
+export const MAX_CLOCK_SKEW_MS = 10_000;
 export const MAX_ACCURACY_METERS = 200;
 
 export interface PingInput {
@@ -38,11 +38,7 @@ export function validatePing(input: PingInput): { ok: true; value: ValidPing } |
     }
     accuracy = Math.round(accuracyMeters);
   }
-  // Legacy clients omit measuredAt/seq — accept, stamp server-side.
-  if (measuredAt === undefined || measuredAt === null) {
-    const s = typeof seq === 'number' && Number.isFinite(seq) ? Math.floor(seq) : 0;
-    return { ok: true, value: { lat, lng, accuracyMeters: accuracy, measuredAt: new Date(), seq: s } };
-  }
+  if (typeof measuredAt !== 'string') return { ok: false, message: 'Measurement time is required.' };
   const measured = new Date(measuredAt as string);
   if (Number.isNaN(measured.getTime())) {
     return { ok: false, message: 'Measurement time is invalid.' };
@@ -58,11 +54,4 @@ export function validatePing(input: PingInput): { ok: true; value: ValidPing } |
     return { ok: false, message: 'Device clock looks wrong. Check date/time settings.' };
   }
   return { ok: true, value: { lat, lng, accuracyMeters: accuracy, measuredAt: measured, seq: Math.floor(seq) } };
-}
-
-/** Reject older retries so markers cannot move backward. */
-export function isOutOfOrder(lastSeq: number | null | undefined, lastMeasured: Date | null | undefined, next: ValidPing): boolean {
-  if (typeof lastSeq === 'number' && next.seq <= lastSeq) return true;
-  if (lastMeasured && next.measuredAt.getTime() < lastMeasured.getTime()) return true;
-  return false;
 }

@@ -125,7 +125,7 @@ check('onDuty true', onDuty.body?.onDuty === true);
 const ping = await call(`/api/buses/${busId}/ping`, {
   method: 'POST',
   token: D1,
-  body: { lat: 35.6712869, lng: -80.4856795, accuracyMeters: 8 },
+  body: { measuredAt: new Date().toISOString(), seq: Date.now(), lat: 35.6712869, lng: -80.4856795, accuracyMeters: 8 },
 });
 check('ping accepted', ping.status === 200, JSON.stringify(ping.body));
 
@@ -257,7 +257,7 @@ const loser = claimA.status === 409 ? claimA : claimB;
 check('loser gets claim_conflict', loser.body?.code === 'claim_conflict', loser.body?.code);
 
 const winnerToken = claimA.status === 200 ? D1 : D2;
-const queueAfter = await call('/api/requests/queue', { token: D2 });
+const queueAfter = await call('/api/requests/queue', { token: claimA.status === 200 ? D2 : D1 });
 check('claimed request left the queue (FR3.5)',
   !queueAfter.body.some((q) => q.id === created.body.id));
 

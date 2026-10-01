@@ -10,6 +10,7 @@ import { trackingRouter } from './routes/tracking.js';
 import { waitingRouter } from './routes/waiting.js';
 import { requestsRouter, schedulesRouter } from './routes/requests.js';
 import { attachSockets } from './socket.js';
+import { prepareDatabase } from './services/database.js';
 import { startEmailWorker } from './services/emailWorker.js';
 
 const PORT = Number(process.env.PORT ?? 4000);
@@ -59,8 +60,9 @@ app.use(
 );
 
 async function start() {
-  await mongoose.connect(MONGO_URL);
-  console.log(`Mongo connected: ${MONGO_URL}`);
+  await mongoose.connect(MONGO_URL, { autoIndex: false });
+  await prepareDatabase();
+  console.log('Mongo connected; transaction support verified.');
   const http = createServer(app);
   attachSockets(http);
   startEmailWorker();

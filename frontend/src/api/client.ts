@@ -51,6 +51,7 @@ export async function request<T>(
 
   const response = await fetch(`${BASE}${path}`, {
     ...init,
+    signal: init.signal ?? AbortSignal.timeout(12_000),
     headers: {
       'Content-Type': 'application/json',
       ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),

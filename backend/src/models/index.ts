@@ -102,6 +102,7 @@ export const Driver = mongoose.model('Driver', driverSchema);
 const busSchema = new Schema(
   {
     label: { type: String, required: true },
+    revision: { type: Number, default: 0 },
     driver: { type: Schema.Types.ObjectId, ref: 'Driver', default: null },
     onDuty: { type: Boolean, default: false },
     lat: { type: Number, default: null },
@@ -141,6 +142,7 @@ const waitingCheckInSchema = new Schema(
 /** The demand board queries by stop and status on every poll. */
 waitingCheckInSchema.index({ stop: 1, status: 1, createdAt: 1 });
 waitingCheckInSchema.index({ student: 1, status: 1 });
+waitingCheckInSchema.index({ student: 1 }, { unique: true, partialFilterExpression: { status: 'waiting' }, name: 'one_waiting_per_student' });
 
 export const WaitingCheckIn = mongoose.model('WaitingCheckIn', waitingCheckInSchema);
 
@@ -177,6 +179,10 @@ const emailOutboxSchema = new Schema(
     lastError: { type: String, default: null },
     sentAt: { type: Date, default: null },
     providerMessageId: { type: String, default: null },
+    leaseUntil: { type: Date, default: null },
+    leaseToken: { type: String, default: null },
+    firstAttemptAt: { type: Date, default: null },
+    payload: { type: Schema.Types.Mixed, default: null },
   },
   baseOptions,
 );

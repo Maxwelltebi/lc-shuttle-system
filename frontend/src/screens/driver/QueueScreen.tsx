@@ -14,6 +14,7 @@ import {
   resendSchedule,
   scheduleRequest,
 } from '../../api/requests';
+import { fetchFailedEmails } from '../../api/tracking';
 import { usePolling } from '../../hooks/usePolling';
 import { Screen } from '../../layouts/Screen';
 import type { ApiError, QueueEntry, RideSchedule } from '../../types';
@@ -28,6 +29,7 @@ import styles from './QueueScreen.module.css';
  */
 export function QueueScreen() {
   const { data: queue, loading } = usePolling<QueueEntry[]>(fetchQueue, []);
+  const { data: deliveries, error: deliveryError } = usePolling(fetchFailedEmails, [], 5000);
   const [scheduling, setScheduling] = useState<QueueEntry | null>(null);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -68,11 +70,10 @@ export function QueueScreen() {
     }
   }
 
-  async function handleResend() {
-    if (!sent) return;
+  async function handleResend(scheduleId: string) {
     setBusy(true);
     try {
-      setSent(await resendSchedule(sent.id));
+      await resendSchedule(scheduleId);
     } catch (caught) {
       setError(caught as ApiError);
     } finally {
@@ -102,27 +103,18 @@ export function QueueScreen() {
             </div>
           )}
 
-          {/* A schedule saved but not emailed is not a success. */}
-          {sent && (
-            <div style={{ marginBottom: 'var(--space-4)' }}>
-              {sent.emailStatus === 'failed' ? (
-                <Notice tone="error" title="Schedule saved, email not delivered">
-                  The student has not been told. Try sending again.
-                  <span style={{ display: 'block', marginTop: 'var(--space-3)' }}>
-                    <Button size="sm" variant="outline" onClick={handleResend} disabled={busy}>
-                      Resend email
-                    </Button>
-                  </span>
-                </Notice>
-              ) : (
-                <Notice tone="success" title="Schedule sent">
-                  {sent.sentAt
-                    ? `Emailed to the student at ${formatClock(sent.sentAt)}.`
-                    : 'The confirmation email is on its way.'}
-                </Notice>
-              )}
-            </div>
-          )}
+          {sent && <Notice tone="info" title="Trip saved">Email delivery is tracked below.</Notice>}
+          {deliveryError && <Notice tone="error">Could not refresh email delivery status.</Notice>}
+          {deliveries.map(job => (
+            <Card key={job.id}>
+              <p>{job.to}</p>
+              <Notice tone={job.status === 'failed' ? 'error' : job.status === 'sent' ? 'success' : 'info'}
+                title={job.status === 'sent' ? 'Email accepted by provider' : job.status === 'failed' ? 'Email delivery failed' : 'Email queued ? delivery not confirmed'}>
+                {job.lastError ?? (job.sentAt ? formatClock(job.sentAt) : 'The worker will attempt delivery automatically.')}
+              </Notice>
+              {job.status === 'failed' && <Button disabled={busy} onClick={() => handleResend(job.scheduleId)}>Retry email</Button>}
+            </Card>
+          ))}
 
           {queue.length === 0 ? (
             <Card>

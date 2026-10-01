@@ -4,6 +4,7 @@ import { RouteMap } from '../../components/map/RouteMap';
 import { fetchArrivals, fetchBuses, fetchServiceStatus } from '../../api/tracking';
 import { fetchMyCheckIn } from '../../api/waiting';
 import { usePolling } from '../../hooks/usePolling';
+import { mergeFleet, ageFleet } from '../../hooks/fleetState';
 import { useSocket } from '../../hooks/useSocket';
 import { useStops } from '../../hooks/useStops';
 import type { Bus, Stop, StopArrival } from '../../types';
@@ -17,31 +18,20 @@ import styles from './MapScreen.module.css';
  */
 export function MapScreen() {
   const stops = useStops();
-  const [liveBuses, setLiveBuses] = useState<Bus[] | null>(null);
+  const [liveBuses, setLiveBuses] = useState<Bus[]>([]);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
   const { data: polledBuses, error: busesError } = usePolling<Bus[]>(fetchBuses, []);
   const { data: service } = usePolling(fetchServiceStatus, null, 60_000);
   const { data: checkIn } = usePolling(fetchMyCheckIn, null, 30_000);
 
   const { state: socketState } = useSocket(
-    useCallback((snapshot: Bus[]) => setLiveBuses(snapshot), []),
-    useCallback((bus: Bus) => {
-      setLiveBuses((prev) => {
-        if (!prev) return [bus];
-        const idx = prev.findIndex((b) => b.id === bus.id);
-        if (idx < 0) return [...prev, bus];
-        const next = [...prev];
-        next[idx] = bus;
-        return next;
-      });
-    }, []),
+    useCallback((snapshot: Bus[]) => setLiveBuses(previous => mergeFleet(previous, snapshot)), []),
+    useCallback((bus: Bus) => setLiveBuses(previous => mergeFleet(previous, [bus])), []),
   );
-
-  // Fallback: use polled buses while socket has never delivered.
-  const buses = liveBuses ?? polledBuses;
-  // Keep polling as fallback when socket is down; live socket updates win otherwise.
-  useEffect(() => {
-    if (socketState === 'disconnected') setLiveBuses(null);
-  }, [socketState]);
+  // Polling also reconciles healthy sockets when a broadcast was missed.
+  useEffect(() => { setLiveBuses(previous => mergeFleet(previous, polledBuses)); }, [polledBuses]);
+  const buses = useMemo(() => ageFleet(liveBuses, now), [liveBuses, now]);
 
   /* Arrival estimates for the bus the panel is showing. Refetched on the
      same cadence as positions, since one moves the other. */
@@ -120,7 +110,7 @@ export function MapScreen() {
         </Card>
       )}
 
-      <ArrivalsList stops={stops} bus={leadBus} arrivals={arrivals} />
+      <ArrivalsList stops={stops} bus={leadBus} arrivals={arrivals.map(a => leadBus?.status === 'live' && inService ? a : { ...a, etaMinutes: null, etaClock: null })} />
     </>
   );
 
@@ -237,7 +227,7 @@ function BusCard({ bus, stopById }: { bus: Bus; stopById: Map<string, Stop> }) {
         <>
           <p className={styles.busHeadline}>{bus.label} — offline</p>
           <p className={styles.busDetail}>
-            No recent position{bus.position ? ` (last ${relativeAge(bus.position.lastPingAt)})` : ''}. Showing the timetable instead.
+            No recent position{bus.position ? ` (last ${relativeAge(bus.position.measuredAt ?? bus.position.lastPingAt)})` : ''}. Showing the timetable instead.
           </p>
         </>
       ) : (

@@ -54,7 +54,7 @@ waitingRouter.post('/', requireAuth, requireRole('student'), async (req, res) =>
     await session.withTransaction(async () => {
       const cutoff = new Date(Date.now() - CHECKIN_TTL_MS);
       await WaitingCheckIn.updateMany(
-        { status: 'waiting', createdAt: { $lt: cutoff } },
+        { student: req.account._id, status: 'waiting', createdAt: { $lt: cutoff } },
         { status: 'expired' },
         { session },
       );
@@ -72,20 +72,7 @@ waitingRouter.post('/', requireAuth, requireRole('student'), async (req, res) =>
     const payload: CheckInType = toCheckIn((created as { toObject(): unknown }).toObject() as never);
     return res.status(201).json(payload);
   } catch (error) {
-    // Standalone MongoDB (no replica set) cannot run transactions —
-    // fall back to the ordered non-transactional path.
-    if (error instanceof Error && /transaction|replica/i.test(error.message)) {
-      await WaitingCheckIn.updateMany(
-        { student: req.account._id, status: 'waiting' },
-        { status: 'withdrawn' },
-      );
-      const created = await WaitingCheckIn.create({
-        student: req.account._id,
-        stop: stop._id,
-        status: 'waiting',
-      });
-      return res.status(201).json(toCheckIn(created.toObject()));
-    }
+    if ((error as { code?: number }).code === 11000) return fail(res, 409, 'claim_conflict', 'Another check-in was submitted. Refresh and try again.');
     throw error;
   } finally {
     await session.endSession();
