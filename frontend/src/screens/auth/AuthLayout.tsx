@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Logo } from '../../components';
 import styles from './AuthLayout.module.css';
 
 interface AuthLayoutProps {
@@ -25,7 +26,7 @@ export function AuthLayout({
     <div className={styles.layout}>
       <div className={styles.formSide}>
         <div className={styles.form}>
-          <span className={styles.mark}>LC</span>
+          <Logo size={52} className={styles.logo} />
           <div>
             <h1 className={styles.heading}>{heading}</h1>
             <p className={styles.subheading}>{subheading}</p>

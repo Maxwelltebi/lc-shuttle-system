@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Badge } from '../components';
+import { Badge, Logo } from '../components';
 import {
   IconInbox,
   IconList,
@@ -77,7 +77,7 @@ export function AppShell({ nav, user, onSignOut }: AppShellProps) {
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
         <div className={styles.brand}>
-          <span className={styles.mark}>LC</span>
+          <Logo size={34} className={styles.logo} />
           <span className={styles.wordmark}>Shuttle</span>
         </div>
 

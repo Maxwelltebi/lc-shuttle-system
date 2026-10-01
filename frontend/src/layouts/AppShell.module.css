@@ -28,17 +28,12 @@
   margin-bottom: var(--space-8);
 }
 
-.mark {
-  display: grid;
-  place-items: center;
+.logo {
   width: 34px;
   height: 34px;
-  border-radius: var(--radius-sm);
-  background: var(--ink);
-  color: var(--ink-on-dark);
-  font-size: var(--text-small);
-  font-weight: var(--weight-bold);
-  letter-spacing: 0.02em;
+  flex: none;
+  border-radius: 8px;
+  object-fit: contain;
 }
 
 .wordmark { font-size: 1.0625rem; font-weight: var(--weight-semibold); }

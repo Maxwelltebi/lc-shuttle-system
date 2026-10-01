@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Badge, Card, EmptyState, Notice } from '../../components';
+import { Badge, Card, EmptyState, Logo, Notice } from '../../components';
 import { RouteMap } from '../../components/map/RouteMap';
 import { fetchArrivals, fetchBuses, fetchServiceStatus } from '../../api/tracking';
 import { checkIn as requestCheckIn, fetchMyCheckIn, withdrawCheckIn } from '../../api/waiting';
@@ -203,7 +203,7 @@ export function MapScreen() {
           </svg>
         </button>
         <p className={styles.brand}>
-          <span className={styles.brandLc}>LC</span> Shuttle
+          <Logo size={30} className={styles.brandLogo} /> Shuttle
         </p>
         <button
           type="button"
@@ -225,7 +225,7 @@ export function MapScreen() {
           <div className={styles.scrim} onClick={() => setDrawerOpen(false)} aria-hidden />
           <nav className={styles.drawer} aria-label="Menu">
             <p className={styles.brand}>
-              <span className={styles.brandLc}>LC</span> Shuttle
+              <Logo size={30} className={styles.brandLogo} /> Shuttle
             </p>
             {user ? (
               <p className={styles.drawerUser}>

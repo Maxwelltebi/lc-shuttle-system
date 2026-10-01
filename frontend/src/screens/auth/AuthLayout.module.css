@@ -23,16 +23,11 @@
   gap: var(--space-5);
 }
 
-.mark {
-  display: grid;
-  place-items: center;
+.logo {
   width: 52px;
   height: 52px;
-  border-radius: 15px;
-  background: var(--ink);
-  color: var(--ink-on-dark);
-  font-size: 1.125rem;
-  font-weight: var(--weight-bold);
+  border-radius: 12px;
+  object-fit: contain;
 }
 
 .heading {

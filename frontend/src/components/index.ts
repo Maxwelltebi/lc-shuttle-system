@@ -1,4 +1,5 @@
 export { Button } from './Button';
+export { Logo } from './Logo';
 export { Card } from './Card';
 export { Badge } from './Badge';
 export { Toggle } from './Toggle';
