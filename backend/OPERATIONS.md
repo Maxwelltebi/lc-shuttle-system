@@ -56,7 +56,30 @@ Drivers can inspect their delivery statuses and retry failed jobs from the queue
 fail terminally. Manual retries reset the bounded attempt count, preserve the
 payload/key, and do not resend already accepted or currently queued jobs.
 
-## Verification
+## Render idle sleep
+
+The API already exposes `GET /health`, returning `{ "ok": true }` without
+authentication or database queries. An external scheduler can send an HTTP GET
+to `https://YOUR-BACKEND.onrender.com/health` every 5 minutes (`*/5 * * * *`).
+Use the backend URL, not the frontend URL. Verify a 200 response and configure
+failure notifications in the scheduler. For a cron host with curl installed:
+
+```cron
+*/5 * * * * curl --fail --silent --show-error --max-time 90 https://YOUR-BACKEND.onrender.com/health
+```
+
+This schedule must run outside the API process and on an always-running host or
+external scheduling service. A timer inside the API cannot run while Render has
+put the instance to sleep. This repository does not activate an external job.
+
+Render's Free web services sleep after 15 minutes without inbound traffic.
+Scheduled requests can reduce idle cold starts, but cannot guarantee continuous
+availability. Free instances can restart, and the workspace shares 750 free
+instance hours per month. To remove idle sleep, upgrade the backend service's
+compute instance to a paid type (upgrading the workspace plan alone is not enough).
+See https://render.com/docs/free for current limits.
+
+## Verification commands
 
 `npm run test:reliability` starts a disposable MongoDB replica set and a local HTTP
 and socket server. It does not load `.env`, use the application database, or send

@@ -221,7 +221,7 @@ export function SignUpScreen() {
 
         {error && !error.fields && <Notice tone="error">{error.message}</Notice>}
 
-        <Button type="submit" size="lg" block disabled={submitting}>
+        <Button type="submit" size="lg" block loading={submitting}>
           {role === 'driver' ? 'Request driver access' : 'Create account'}
         </Button>
       </form>

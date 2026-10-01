@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Badge, Card, EmptyState, Logo, Notice } from '../../components';
+import { Badge, Card, EmptyState, Logo, Notice, Spinner } from '../../components';
 import { RouteMap } from '../../components/map/RouteMap';
 import { fetchArrivals, fetchBuses, fetchServiceStatus } from '../../api/tracking';
 import { checkIn as requestCheckIn, fetchMyCheckIn, withdrawCheckIn } from '../../api/waiting';
@@ -391,8 +391,10 @@ export function MapScreen() {
               type="button"
               className={styles.cta}
               onClick={handleCta}
+              aria-busy={ctaBusy}
               disabled={ctaBusy || (!activeCheckIn && !originStopId)}
             >
+              {ctaBusy && <Spinner />}
               {ctaBusy
                 ? 'Updating…'
                 : activeCheckIn

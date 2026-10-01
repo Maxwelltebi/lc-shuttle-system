@@ -106,7 +106,7 @@ export function SignInScreen() {
           </Notice>
         )}
 
-        <Button type="submit" size="lg" block disabled={submitting}>
+        <Button type="submit" size="lg" block loading={submitting}>
           {submitting ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>

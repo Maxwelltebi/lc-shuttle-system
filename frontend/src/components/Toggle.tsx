@@ -1,4 +1,5 @@
 import styles from './Toggle.module.css';
+import { Spinner } from './Spinner';
 
 interface ToggleProps {
   checked: boolean;
@@ -8,6 +9,7 @@ interface ToggleProps {
   /** "Students can see Bus 1 on the map." */
   description?: string;
   disabled?: boolean;
+  loading?: boolean;
 }
 
 /**
@@ -20,13 +22,15 @@ export function Toggle({
   label,
   description,
   disabled = false,
+  loading = false,
 }: ToggleProps) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
-      disabled={disabled}
+      disabled={disabled || loading}
+      aria-busy={loading}
       className={styles.wrap}
       onClick={() => onChange(!checked)}
     >
@@ -34,6 +38,7 @@ export function Toggle({
         <span className={styles.label}>{label}</span>
         {description && <span className={styles.description}>{description}</span>}
       </span>
+      {loading && <Spinner />}
       <span className={`${styles.track} ${checked ? styles.on : ''}`}>
         <span className={styles.knob} />
       </span>

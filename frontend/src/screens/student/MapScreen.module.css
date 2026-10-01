@@ -327,6 +327,10 @@
 }
 
 .cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   border: 0;
   border-radius: 16px;
   background: #1f66e5;

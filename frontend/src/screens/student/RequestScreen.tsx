@@ -176,7 +176,7 @@ export function RequestScreen() {
               flexWrap: 'wrap',
             }}
           >
-            <Button type="submit" size="lg" disabled={busy}>
+            <Button type="submit" size="lg" loading={busy}>
               {busy ? 'Submitting…' : 'Submit request'}
             </Button>
             <span

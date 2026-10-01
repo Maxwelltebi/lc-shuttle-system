@@ -17,7 +17,7 @@ import styles from './BoardScreen.module.css';
  */
 export function BoardScreen() {
   const stops = useStops();
-  const { data: demand, loading } = usePolling<StopDemand[]>(fetchDemand, []);
+  const { data: demand, loading, setData: setDemand } = usePolling<StopDemand[]>(fetchDemand, []);
   const { bus } = useMyBus();
   const [clearing, setClearing] = useState<string | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -30,10 +30,16 @@ export function BoardScreen() {
   const total = demand.reduce((sum, row) => sum + row.waitingCount, 0);
 
   async function handleClear(stopId: string) {
+    if (clearing) return;
     setClearing(stopId);
     setError(null);
     try {
-      await clearStop(stopId);
+      const cleared = await clearStop(stopId);
+      if (cleared) {
+        setDemand(previous => previous.map(row => row.stopId === stopId ? cleared : row));
+      } else {
+        setDemand(await fetchDemand());
+      }
     } catch (caught) {
       setError(caught as ApiError);
     } finally {
@@ -100,7 +106,8 @@ export function BoardScreen() {
                 block
                 /* Stays visible at zero so the board keeps its shape, but
                    is clearly inert — there is nothing to clear. */
-                disabled={count === 0 || clearing === stop.id || loading}
+                loading={clearing === stop.id}
+                disabled={count === 0 || clearing !== null || loading}
                 onClick={() => handleClear(stop.id)}
               >
                 {clearing === stop.id ? 'Clearing…' : 'Clear all'}

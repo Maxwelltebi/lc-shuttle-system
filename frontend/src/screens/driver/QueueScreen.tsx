@@ -33,12 +33,13 @@ export function QueueScreen() {
   const [scheduling, setScheduling] = useState<QueueEntry | null>(null);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<string | null>(null);
+  const busy = pending !== null;
   const [error, setError] = useState<ApiError | null>(null);
   const [sent, setSent] = useState<RideSchedule | null>(null);
 
   async function handleClaim(entry: QueueEntry) {
-    setBusy(true);
+    setPending(`claim:${entry.id}`);
     setError(null);
     try {
       await claimRequest(entry.id);
@@ -46,14 +47,14 @@ export function QueueScreen() {
     } catch (caught) {
       setError(caught as ApiError);
     } finally {
-      setBusy(false);
+      setPending(null);
     }
   }
 
   async function handleSend(event: React.FormEvent) {
     event.preventDefault();
     if (!scheduling) return;
-    setBusy(true);
+    setPending('send');
     setError(null);
     try {
       const schedule = await scheduleRequest(scheduling.id, {
@@ -66,18 +67,18 @@ export function QueueScreen() {
     } catch (caught) {
       setError(caught as ApiError);
     } finally {
-      setBusy(false);
+      setPending(null);
     }
   }
 
   async function handleResend(scheduleId: string) {
-    setBusy(true);
+    setPending(`retry:${scheduleId}`);
     try {
       await resendSchedule(scheduleId);
     } catch (caught) {
       setError(caught as ApiError);
     } finally {
-      setBusy(false);
+      setPending(null);
     }
   }
 
@@ -114,7 +115,7 @@ export function QueueScreen() {
                 title={job.status === 'sent' ? 'Email accepted by provider' : job.status === 'failed' ? 'Email delivery failed' : 'Email queued ? delivery not confirmed'}>
                 {job.lastError ?? (job.sentAt ? formatClock(job.sentAt) : 'The worker will attempt delivery automatically.')}
               </Notice>
-              {job.status === 'failed' && <Button disabled={busy} onClick={() => handleResend(job.scheduleId)}>Retry email</Button>}
+              {job.status === 'failed' && <Button disabled={busy} loading={pending === `retry:${job.scheduleId}`} onClick={() => handleResend(job.scheduleId)}>Retry email</Button>}
             </Card>
           ))}
 
@@ -158,6 +159,7 @@ export function QueueScreen() {
                     {entry.status === 'claimed' ? (
                       <Button
                         variant="outline"
+                        disabled={busy}
                         onClick={() => setScheduling(entry)}
                       >
                         Set a time
@@ -166,6 +168,7 @@ export function QueueScreen() {
                       <Button
                         variant="accent"
                         disabled={busy}
+                        loading={pending === `claim:${entry.id}`}
                         onClick={() => handleClaim(entry)}
                       >
                         Claim
@@ -214,13 +217,14 @@ export function QueueScreen() {
                 pickup point.
               </Notice>
 
-              <Button type="submit" size="lg" block disabled={busy}>
-                {busy ? 'Sending…' : 'Send schedule'}
+              <Button type="submit" size="lg" block disabled={busy} loading={pending === 'send'}>
+                {pending === 'send' ? 'Sending…' : 'Send schedule'}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 block
+                disabled={busy}
                 onClick={() => setScheduling(null)}
               >
                 Not now

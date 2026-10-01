@@ -109,7 +109,7 @@ export function WaitingScreen() {
                 you up.
               </p>
               <div style={{ marginTop: 'var(--space-4)' }}>
-                <Button variant="danger" block disabled={busy} onClick={handleWithdraw}>
+                <Button variant="danger" block loading={busy} onClick={handleWithdraw}>
                   Cancel check-in
                 </Button>
               </div>
@@ -127,7 +127,7 @@ export function WaitingScreen() {
                 <Button
                   variant="accent"
                   block
-                  disabled={!selectedStopId || busy}
+                  disabled={!selectedStopId} loading={busy}
                   onClick={handleCheckIn}
                 >
                   I'm waiting here
@@ -163,7 +163,7 @@ export function WaitingScreen() {
       {/* Mobile: the primary action is pinned rather than inside the panel. */}
       {!active && selectedStop && (
         <div className={styles.confirmBar}>
-          <Button variant="accent" block disabled={busy} onClick={handleCheckIn}>
+          <Button variant="accent" block loading={busy} onClick={handleCheckIn}>
             Confirm — {selectedStop.name}
           </Button>
         </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Badge, Card, EmptyState, Metric, Notice, Toggle } from '../../components';
+import { Badge, Card, EmptyState, Metric, Notice, Spinner, Toggle } from '../../components';
 import { IconArrowRight, IconCheck } from '../../components/Icon';
 import { setNextStop, setOnDuty } from '../../api/tracking';
 import { fetchDemand } from '../../api/waiting';
@@ -25,6 +25,7 @@ export function DutyScreen() {
   const tracking = useTracking();
   const { bus, setBus, loading } = tracking;
   const [busy, setBusy] = useState(false);
+  const [changingStop, setChangingStop] = useState<string | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const { data: demand } = usePolling<StopDemand[]>(fetchDemand, []);
 
@@ -49,11 +50,15 @@ export function DutyScreen() {
   }
 
   async function handleNextStop(stopId: string) {
-    if (!bus) return;
+    if (!bus || busy || changingStop) return;
+    setChangingStop(stopId);
+    setError(null);
     try {
       setBus((await setNextStop(bus.id, stopId)) ?? bus);
     } catch (caught) {
       setError(caught as ApiError);
+    } finally {
+      setChangingStop(null);
     }
   }
 
@@ -86,7 +91,8 @@ export function DutyScreen() {
           <Card tone={onDuty ? 'live' : 'default'}>
             <Toggle
               checked={onDuty}
-              disabled={busy}
+              disabled={busy || changingStop !== null}
+              loading={busy}
               onChange={handleDutyChange}
               label={onDuty ? 'On duty' : 'Off duty'}
               description={
@@ -116,11 +122,13 @@ export function DutyScreen() {
                   type="button"
                   /* Choosing a destination while off duty would be
                      meaningless — nobody is receiving it. */
-                  disabled={!onDuty}
+                  disabled={!onDuty || busy || changingStop !== null}
+                  aria-busy={changingStop === stop.id}
                   onClick={() => handleNextStop(stop.id)}
                   className={`${styles.stopRow} ${selected ? styles.stopRowSelected : ''}`}
                 >
                   <span className={styles.stopSequence}>{stop.sequence}</span>
+                  {changingStop === stop.id && <Spinner />}
                   <span className={styles.stopBody}>
                     <span className={styles.stopName}>{stop.name}</span>
                     <br />

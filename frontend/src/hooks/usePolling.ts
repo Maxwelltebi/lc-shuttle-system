@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
 import type { ApiError } from '../types';
 
 /**
@@ -23,9 +23,11 @@ export function usePolling<T>(
   fetcherRef.current = fetcher;
 
   // A successful mutation supersedes reads started before it completed.
-  const setData = useCallback((data: T) => {
+  const setData = useCallback((data: SetStateAction<T>) => {
     requestVersion.current += 1;
-    setSnapshot({ key: resourceKey, data });
+    setSnapshot(previous => ({ key: resourceKey, data: typeof data === 'function'
+      ? (data as (previous: T) => T)(previous.key === resourceKey ? previous.data : initialRef.current)
+      : data }));
     setLoading(false);
     setError(null);
   }, [resourceKey]);
