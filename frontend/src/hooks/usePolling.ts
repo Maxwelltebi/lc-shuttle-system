@@ -1,12 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ApiError } from '../types';
 
 /**
  * Poll an async function on an interval.
- *
- * This is the single place the app's "live" behaviour lives. Replacing
- * polling with WebSockets later means rewriting this hook and nothing
- * else — no screen knows how its data arrives.
  *
  * Polling pauses while the tab is hidden: a phone in someone's pocket
  * should not burn battery asking where the bus is.
@@ -15,28 +11,44 @@ export function usePolling<T>(
   fetcher: () => Promise<T>,
   initial: T,
   intervalMs = 10_000,
+  resourceKey: string | null = null,
 ) {
-  const [data, setData] = useState<T>(initial);
+  const [snapshot, setSnapshot] = useState({ key: resourceKey, data: initial });
+  const requestVersion = useRef(0);
+  const initialRef = useRef(initial);
+  initialRef.current = initial;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
 
+  // A successful mutation supersedes reads started before it completed.
+  const setData = useCallback((data: T) => {
+    requestVersion.current += 1;
+    setSnapshot({ key: resourceKey, data });
+    setLoading(false);
+    setError(null);
+  }, [resourceKey]);
+
   useEffect(() => {
     let active = true;
     let timer: number | undefined;
+    setSnapshot({ key: resourceKey, data: initialRef.current });
+    setLoading(true);
+    setError(null);
 
     async function tick() {
+      const version = ++requestVersion.current;
       try {
         const result = await fetcherRef.current();
-        if (active) {
-          setData(result);
+        if (active && version === requestVersion.current) {
+          setSnapshot({ key: resourceKey, data: result });
           setError(null);
         }
       } catch (caught) {
-        if (active) setError(caught as ApiError);
+        if (active && version === requestVersion.current) setError(caught as ApiError);
       } finally {
-        if (active) setLoading(false);
+        if (active && version === requestVersion.current) setLoading(false);
       }
     }
 
@@ -67,7 +79,7 @@ export function usePolling<T>(
       window.clearTimeout(timer);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [intervalMs]);
+  }, [intervalMs, resourceKey]);
 
-  return { data, loading, error };
+  return { data: snapshot.key === resourceKey ? snapshot.data : initial, loading, error, setData };
 }

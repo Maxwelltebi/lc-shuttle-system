@@ -9,7 +9,7 @@ import { mergeFleet, ageFleet } from '../../hooks/fleetState';
 import { useSocket } from '../../hooks/useSocket';
 import { useSession } from '../../hooks/useSession';
 import { useStops } from '../../hooks/useStops';
-import type { ApiError, Bus, Stop, StopArrival, WaitingCheckIn } from '../../types';
+import type { ApiError, Bus, Stop, StopArrival } from '../../types';
 import styles from './MapScreen.module.css';
 
 const DRAWER_LINKS = [
@@ -40,7 +40,7 @@ export function MapScreen() {
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
   const { data: polledBuses, error: busesError } = usePolling<Bus[]>(fetchBuses, []);
   const { data: service } = usePolling(fetchServiceStatus, null, 60_000);
-  const { data: polledCheckIn } = usePolling(fetchMyCheckIn, null, 30_000);
+  const { data: polledCheckIn, setData: setCheckIn } = usePolling(fetchMyCheckIn, null, 30_000);
 
   const { state: socketState } = useSocket(
     useCallback((snapshot: Bus[]) => setLiveBuses(previous => mergeFleet(previous, snapshot)), []),
@@ -64,6 +64,8 @@ export function MapScreen() {
       [shownBusId],
     ),
     [],
+    10_000,
+    shownBusId,
   );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -101,11 +103,8 @@ export function MapScreen() {
 
   const originStop = originStopId ? stopById.get(originStopId) ?? null : null;
 
-  /* "I am waiting" state. The poll refreshes every 30s; the local override
-     keeps the button truthful immediately after a tap. */
-  const [localCheckIn, setLocalCheckIn] = useState<WaitingCheckIn | null | undefined>(undefined);
-  const activeCheckIn = localCheckIn !== undefined ? localCheckIn : polledCheckIn;
-  useEffect(() => { setLocalCheckIn(undefined); }, [polledCheckIn?.id]);
+  // Mutations and polling share one state, including null server responses.
+  const activeCheckIn = polledCheckIn;
   const [ctaBusy, setCtaBusy] = useState(false);
   const [ctaError, setCtaError] = useState<string | null>(null);
 
@@ -116,10 +115,10 @@ export function MapScreen() {
     try {
       if (activeCheckIn) {
         await withdrawCheckIn(activeCheckIn.id);
-        setLocalCheckIn(null);
+        setCheckIn(null);
       } else if (originStopId) {
         const created = await requestCheckIn(originStopId);
-        setLocalCheckIn(created ?? (await fetchMyCheckIn()));
+        setCheckIn(created ?? (await fetchMyCheckIn()));
       }
     } catch (caught) {
       setCtaError((caught as ApiError)?.message ?? 'Could not update your check-in.');

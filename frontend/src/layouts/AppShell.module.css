@@ -118,6 +118,22 @@
   flex-direction: column;
 }
 
+.driverMobileNav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.driverMobileNav .navItem {
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  font-size: var(--text-small);
+}
+
 @media (min-width: 900px) {
   .sidebar { display: flex; }
+  .driverMobileNav { display: none; }
 }

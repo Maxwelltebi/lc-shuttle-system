@@ -117,6 +117,18 @@ export function AppShell({ nav, user, onSignOut }: AppShellProps) {
       </aside>
 
       <main className={styles.main}>
+        {user?.role === 'driver' && (
+          <nav className={styles.driverMobileNav} aria-label="Driver navigation">
+            {nav.map(({ to, label, icon: Icon }) => (
+              <NavLink key={to} to={to} className={({ isActive }) =>
+                `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
+              }>
+                <Icon size={20} />
+                <span>{label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        )}
         <Outlet />
       </main>
     </div>
