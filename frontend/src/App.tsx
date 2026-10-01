@@ -11,6 +11,7 @@ import { TripsScreen } from './screens/student/TripsScreen';
 import { DutyScreen } from './screens/driver/DutyScreen';
 import { BoardScreen } from './screens/driver/BoardScreen';
 import { QueueScreen } from './screens/driver/QueueScreen';
+import { ProfileScreen } from './screens/ProfileScreen';
 import { useSession } from './hooks/useSession';
 
 /**
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="/duty" element={<DutyScreen />} />
             <Route path="/board" element={<BoardScreen />} />
             <Route path="/queue" element={<QueueScreen />} />
+            <Route path="/profile" element={<ProfileScreen />} />
             <Route path="*" element={<Navigate to="/board" replace />} />
           </Route>
         </Routes>
@@ -63,6 +65,7 @@ export default function App() {
         <Route path="/waiting" element={<WaitingScreen />} />
         <Route path="/request" element={<RequestScreen />} />
         <Route path="/trips" element={<TripsScreen />} />
+        <Route path="/profile" element={<ProfileScreen />} />
         <Route path="*" element={<Navigate to="/map" replace />} />
       </Route>
     </Routes>

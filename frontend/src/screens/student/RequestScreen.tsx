@@ -11,6 +11,7 @@ import { createRequest } from '../../api/requests';
 import { useStops } from '../../hooks/useStops';
 import { Screen } from '../../layouts/Screen';
 import { DEPARTURES } from '../../config/stops';
+import { DESTINATIONS } from '../../config/destinations';
 import type { ApiError } from '../../types';
 
 /**
@@ -73,6 +74,47 @@ export function RequestScreen() {
             error={error?.fields?.destination}
             required
           />
+
+          {/* Explicit, mappable destinations. Free text still works, but
+              these presets match pins on the live map, so the place a
+              student picks is a place a driver can actually see. */}
+          <div>
+            <p
+              style={{
+                fontSize: 'var(--text-small)',
+                color: 'var(--ink-tertiary)',
+                marginBottom: 'var(--space-2)',
+              }}
+            >
+              Common destinations
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+              {DESTINATIONS.map((place) => (
+                <button
+                  key={place.id}
+                  type="button"
+                  onClick={() => setDestination(`${place.name}, ${place.address}`)}
+                  title={place.address}
+                  style={{
+                    padding: 'var(--space-2) var(--space-3)',
+                    borderRadius: 'var(--radius-pill)',
+                    border:
+                      destination === `${place.name}, ${place.address}`
+                        ? '1px solid var(--accent)'
+                        : '1px solid var(--line-strong)',
+                    background:
+                      destination === `${place.name}, ${place.address}`
+                        ? 'var(--accent-soft)'
+                        : 'var(--surface)',
+                    fontSize: 'var(--text-small)',
+                    fontWeight: 'var(--weight-medium)',
+                  }}
+                >
+                  {place.name}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <SelectField
             label="Pickup location"

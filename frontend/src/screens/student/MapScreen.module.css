@@ -133,9 +133,52 @@
 
 .sheetExpanded { max-height: 78dvh; }
 
-/* The handle is the whole tap target, not just the little bar. */
+/* Dismissed sheet: a small floating pill reopens it. The map underneath
+   is fully visible, which is the point — the peek bar must never be a
+   permanent cover over stops. */
+.reopen {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--tabbar-height) + var(--space-3));
+  z-index: 450;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  box-shadow: var(--shadow-panel);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  color: var(--ink);
+}
+
+.sheetTop {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding-right: var(--space-3);
+}
+
+.sheetClose {
+  flex: none;
+  margin-top: var(--space-2);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-tertiary);
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.sheetClose:hover { background: var(--ground); color: var(--ink); }
+
+/* The handle is the main tap target, not just the little bar.
+   The dismiss (×) sits beside it. */
 .sheetHandle {
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);

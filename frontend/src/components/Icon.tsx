@@ -118,3 +118,14 @@ export function IconCheck({ size = 18, className }: IconProps) {
     </svg>
   );
 }
+
+/** Profile tab — account circle */
+export function IconUser({ size = 22, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="9.5" r="2.8" />
+      <path d="M6.8 17a5.2 5.2 0 0 1 10.4 0" />
+    </svg>
+  );
+}

@@ -86,13 +86,16 @@ export const STOPS: Stop[] = [
   },
 ];
 
-/** Map view covering all nine stops. See README "Map and coordinates". */
+/** Map view covering all nine stops, plus the common off-loop
+ * destinations in `destinations.ts` (notably the airport to the west).
+ * Bounds are intentionally a little wider than the tight stop envelope
+ * so zooming out shows context instead of hitting a wall. */
 export const MAP_VIEW = {
   center: [35.66, -80.4779] as [number, number],
   zoom: 13,
   maxBounds: [
-    [35.635, -80.5],
-    [35.685, -80.455],
+    [35.628, -80.525],
+    [35.692, -80.44],
   ] as [[number, number], [number, number]],
 };
 

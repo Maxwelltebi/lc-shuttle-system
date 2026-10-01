@@ -1,8 +1,9 @@
 import { DivIcon } from 'leaflet';
-import { MapContainer, Marker, Polyline, TileLayer } from 'react-leaflet';
+import { MapContainer, Marker, Polyline, TileLayer, Tooltip } from 'react-leaflet';
 import { useMemo } from 'react';
 import type { Bus, Stop } from '../../types';
 import { MAP_VIEW } from '../../config/stops';
+import { DESTINATIONS } from '../../config/destinations';
 import styles from './RouteMap.module.css';
 import 'leaflet/dist/leaflet.css';
 
@@ -12,6 +13,8 @@ interface RouteMapProps {
   buses: Bus[];
   /** Stop the selected bus is heading to; drawn in amber. */
   nextStopId?: string | null;
+  /** Off-loop request destinations (Walmart, station, …). On by default. */
+  showDestinations?: boolean;
   className?: string;
 }
 
@@ -22,7 +25,7 @@ interface RouteMapProps {
  * "Map provider". CARTO was removed after it started gating tiles behind
  * an API key.
  */
-export function RouteMap({ stops, buses, nextStopId, className }: RouteMapProps) {
+export function RouteMap({ stops, buses, nextStopId, showDestinations = true, className }: RouteMapProps) {
   /* Dotted line through the stops in loop order, closing back to stop 1.
      Not a driving route — it shows the sequence, which is what the
      designs draw and what a rider needs to understand. */
@@ -40,7 +43,8 @@ export function RouteMap({ stops, buses, nextStopId, className }: RouteMapProps)
         zoom={MAP_VIEW.zoom}
         maxBounds={MAP_VIEW.maxBounds}
         maxBoundsViscosity={1}
-        minZoom={12}
+        minZoom={11}
+        maxZoom={19}
         className={styles.map}
         zoomControl
         scrollWheelZoom
@@ -49,6 +53,12 @@ export function RouteMap({ stops, buses, nextStopId, className }: RouteMapProps)
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           maxZoom={19}
+          maxNativeZoom={19}
+          tileSize={256}
+          zoomOffset={0}
+          detectRetina
+          updateWhenIdle={false}
+          keepBuffer={4}
         />
 
         <Polyline
@@ -67,8 +77,41 @@ export function RouteMap({ stops, buses, nextStopId, className }: RouteMapProps)
             position={[stop.lat, stop.lng]}
             icon={stopIcon(stop.sequence, stop.id === nextStopId)}
             title={stop.name}
-          />
+          >
+            {/* Vector label stays sharp at any zoom; raster tile text does
+                not, which is why zooming in used to turn names to mush. */}
+            <Tooltip
+              direction="top"
+              offset={[0, -18]}
+              permanent
+              className={styles.stopLabel}
+              opacity={1}
+            >
+              {stop.name}
+            </Tooltip>
+          </Marker>
         ))}
+
+        {showDestinations
+          ? DESTINATIONS.map((place) => (
+              <Marker
+                key={place.id}
+                position={[place.lat, place.lng]}
+                icon={destinationIcon()}
+                title={`${place.name} — ${place.address}`}
+              >
+                <Tooltip
+                  direction="top"
+                  offset={[0, -14]}
+                  permanent
+                  className={styles.destLabel}
+                  opacity={1}
+                >
+                  {place.name}
+                </Tooltip>
+              </Marker>
+            ))
+          : null}
 
         {buses
           .filter((bus) => bus.position)
@@ -96,14 +139,35 @@ function stopIcon(sequence: number, isNext: boolean) {
   });
 }
 
-/** Labelled chip for a bus, greyed when its last ping is stale. */
-function busIcon(label: string, live: boolean) {
+/** Small diamond for an off-loop request destination. */
+function destinationIcon() {
   return new DivIcon({
     className: '',
-    html: `<span class="${styles.busMarker} ${live ? '' : styles.busMarkerOffline}">
-             <span class="${styles.busDot} ${live ? '' : styles.busDotOffline}"></span>${label}
-           </span>`,
+    html: `<span class="${styles.destMarker}"></span>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+  });
+}
+
+/**
+ * Bus avatar marker: a real bus glyph in a dark (live) or grey (stale)
+ * rounded badge with the label beside it — the shape riders expect from
+ * modern transport apps, not a bare dot-and-chip.
+ */
+function busIcon(label: string, live: boolean) {
+  const escaped = label.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  return new DivIcon({
+    className: '',
+    html:
+      `<span class="${styles.busAvatar} ${live ? styles.busAvatarLive : styles.busAvatarOffline}">` +
+      `<svg class="${styles.busGlyph}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+      `<rect x="4" y="3.5" width="16" height="13" rx="2.5"/>` +
+      `<path d="M4 10h16"/>` +
+      `<circle cx="8" cy="18.5" r="1.6"/><circle cx="16" cy="18.5" r="1.6"/>` +
+      `</svg>` +
+      `<span class="${styles.busAvatarLabel}">${escaped}</span>` +
+      `</span>`,
     iconSize: [0, 0],
-    iconAnchor: [40, 14],
+    iconAnchor: [28, 20],
   });
 }

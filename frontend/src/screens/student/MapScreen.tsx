@@ -45,8 +45,10 @@ export function MapScreen() {
   );
 
   /* Collapsed by default: on a phone the map is the answer, and a sheet
-     that covers it defeats the screen. */
+     that covers it defeats the screen. Hidden on demand: the peek bar
+     can be dismissed entirely so the map is fully visible. */
   const [sheetExpanded, setSheetExpanded] = useState(false);
+  const [sheetHidden, setSheetHidden] = useState(false);
 
   const stopById = useMemo(
     () => new Map(stops.map((stop) => [stop.id, stop])),
@@ -142,21 +144,43 @@ export function MapScreen() {
       </div>
 
       {/* Mobile: a peek sheet over the map. Collapsed it shows one line
-          per bus; expanded it shows the same panel as desktop. */}
+          per bus; it can also be dismissed entirely, or expanded to the
+          full panel. Dismissing matters: a bar that always covers the
+          bottom of the map hides stops behind it. */}
+      {sheetHidden ? (
+        <button
+          type="button"
+          className={styles.reopen}
+          onClick={() => { setSheetHidden(false); setSheetExpanded(false); }}
+        >
+          Show arrivals
+        </button>
+      ) : (
       <div
         className={`${styles.sheet} ${sheetExpanded ? styles.sheetExpanded : ''}`}
       >
-        <button
-          type="button"
-          className={styles.sheetHandle}
-          onClick={() => setSheetExpanded((open) => !open)}
-          aria-expanded={sheetExpanded}
-        >
-          <span className={styles.grabber} />
-          <span className={styles.sheetHint}>
-            {sheetExpanded ? 'Hide details' : 'Arrivals and details'}
-          </span>
-        </button>
+        <div className={styles.sheetTop}>
+          <button
+            type="button"
+            className={styles.sheetHandle}
+            onClick={() => setSheetExpanded((open) => !open)}
+            aria-expanded={sheetExpanded}
+            aria-label={sheetExpanded ? 'Collapse details' : 'Expand arrivals and details'}
+          >
+            <span className={styles.grabber} />
+            <span className={styles.sheetHint}>
+              {sheetExpanded ? 'Hide details' : 'Arrivals and details'}
+            </span>
+          </button>
+          <button
+            type="button"
+            className={styles.sheetClose}
+            onClick={() => setSheetHidden(true)}
+            aria-label="Hide arrivals panel"
+          >
+            ×
+          </button>
+        </div>
 
         {sheetExpanded ? (
           <div className={styles.sheetBody}>{panel}</div>
@@ -183,6 +207,7 @@ export function MapScreen() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

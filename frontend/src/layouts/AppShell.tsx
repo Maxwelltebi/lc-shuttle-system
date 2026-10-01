@@ -9,6 +9,7 @@ import {
   IconPin,
   IconPlus,
   IconPower,
+  IconUser,
 } from '../components/Icon';
 import type { CurrentUser } from '../types';
 import { useMyBus } from '../hooks/useMyBus';
@@ -30,12 +31,14 @@ export const STUDENT_NAV: NavEntry[] = [
   { to: '/waiting', label: 'Waiting', icon: IconPin },
   { to: '/request', label: 'Request', icon: IconPlus },
   { to: '/trips', label: 'My trips', icon: IconList },
+  { to: '/profile', label: 'Profile', icon: IconUser },
 ];
 
 export const DRIVER_NAV: NavEntry[] = [
   { to: '/duty', label: 'On duty', icon: IconPower },
   { to: '/board', label: 'Board', icon: IconPeople },
   { to: '/queue', label: 'Queue', icon: IconInbox },
+  { to: '/profile', label: 'Profile', icon: IconUser },
 ];
 
 interface AppShellProps {

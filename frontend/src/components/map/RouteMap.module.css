@@ -50,7 +50,116 @@
   color: var(--ink-on-dark);
 }
 
-/* Bus chip: dark when live, grey when the ping has gone stale. */
+/* Bus avatar: a real bus glyph in a badge, dark when live, grey when
+   the ping has gone stale. Replaces the old dot-and-chip. */
+.busAvatar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 10px 6px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--ink-on-dark);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  box-shadow: var(--shadow-panel);
+  border: 2px solid #ffffff;
+}
+
+.busAvatarLive { background: var(--ink); }
+
+.busAvatarLive .busGlyph { color: #7ee2ae; }
+
+.busAvatarOffline { background: var(--offline); }
+.busAvatarOffline .busGlyph { color: var(--surface); opacity: 0.85; }
+
+.busGlyph {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 4px;
+}
+
+.busAvatarLabel { padding-right: 2px; }
+
+/* Live buses get a soft pulse ring so they read as moving vehicles. */
+.busAvatarLive::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: var(--radius-pill);
+  border: 2px solid rgba(58, 158, 112, 0.45);
+  animation: busPulse 2.2s ease-out infinite;
+  pointer-events: none;
+}
+
+.busAvatar { position: relative; }
+
+@keyframes busPulse {
+  0% { transform: scale(0.92); opacity: 0.9; }
+  70% { transform: scale(1.08); opacity: 0; }
+  100% { transform: scale(1.08); opacity: 0; }
+}
+
+/* Off-loop destination diamond. */
+.destMarker {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  transform: rotate(45deg);
+  background: #0f766e;
+  border: 2px solid #ffffff;
+  box-shadow: var(--shadow-card);
+}
+
+/* --- Vector labels (stay sharp at any zoom) ------------------------ */
+
+.wrap :global(.leaflet-tooltip.stopLabel),
+.stopLabel {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  padding: 2px 8px;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wrap :global(.leaflet-tooltip.stopLabel::before),
+.wrap :global(.leaflet-tooltip.destLabel::before) {
+  display: none;
+}
+
+.wrap :global(.leaflet-tooltip.destLabel),
+.destLabel {
+  background: #0f766e;
+  border: 1px solid #0f766e;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  padding: 2px 8px;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Legacy chip classes kept for backwards-compat (unused by new markers). */
 .busMarker {
   display: inline-flex;
   align-items: center;
