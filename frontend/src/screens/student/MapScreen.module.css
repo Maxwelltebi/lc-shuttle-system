@@ -1,33 +1,125 @@
-/* Desktop: map left, live panel right (design-png/2-student-map).
-   Mobile:  full-bleed map with a sheet over it (mobile-design/04).    */
+/* LC Shuttle home — mock theme (mobile-first).
+   Page grey, white floating cards, blue primary, big check-in CTA.
+   Desktop keeps the same cards; the map takes the left and the
+   arrivals panel docks on the right. */
 
-.layout { display: flex; flex-direction: column; height: 100%; min-height: 0; }
-
-.header {
+.layout {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-5) var(--space-3);
-  flex: none;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #edf0f4;
 }
 
-.title {
-  font-size: var(--text-title);
+/* --- App bar ------------------------------------------------------- */
+
+.appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  flex: none;
+  background: #edf0f4;
+}
+
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #0f172a;
+  position: relative;
+}
+
+.iconBtn:active { background: rgba(15, 23, 42, 0.08); }
+
+.brand {
+  margin: 0;
+  font-size: 1.5rem;
   font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
+  color: #0f172a;
 }
 
-.summary {
-  margin-top: var(--space-1);
-  font-size: var(--text-small);
+.brandLc { color: #2563eb; }
+
+.bellDot {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid #edf0f4;
+}
+
+/* --- Drawer -------------------------------------------------------- */
+
+.drawerRoot {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.drawer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(300px, 84vw);
+  background: var(--surface);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-panel);
+}
+
+.drawerUser {
   color: var(--ink-secondary);
-  max-width: 64ch;
+  font-size: var(--text-small);
+  margin: var(--space-2) 0 var(--space-4);
 }
 
-.split { flex: 1; min-height: 0; display: flex; }
+.drawerLink {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--ink-secondary);
+  font-weight: var(--weight-medium);
+}
 
-.mapPane { flex: 1; min-width: 0; position: relative; }
+.drawerLinkActive {
+  background: var(--ground);
+  color: var(--ink);
+  font-weight: var(--weight-semibold);
+}
+
+.drawerSignOut {
+  margin-top: auto;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-secondary);
+  font-weight: var(--weight-medium);
+  text-align: left;
+}
+
+/* --- Split: map column + desktop panel ------------------------------ */
+
+.split { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+.mapColumn { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
 .panel {
   display: none;
@@ -41,7 +133,236 @@
   background: var(--ground);
 }
 
-/* --- Bus cards ---------------------------------------------------- */
+/* --- Trip card ----------------------------------------------------- */
+
+.tripCard {
+  margin: var(--space-3) var(--space-4) 0;
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.1);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  flex: none;
+  z-index: 500;
+}
+
+.tripRow { display: flex; gap: var(--space-3); }
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 0;
+  flex: none;
+}
+
+.railDotStart {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex: none;
+}
+
+.railLine {
+  width: 2px;
+  flex: 1;
+  min-height: 28px;
+  margin: 4px 0;
+  background-image: linear-gradient(to bottom, #9ca3af 55%, transparent 45%);
+  background-size: 2px 8px;
+  background-repeat: repeat-y;
+}
+
+.railDotEnd {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2563eb;
+  flex: none;
+}
+
+.tripFields { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.tripField { display: flex; flex-direction: column; padding: 2px 0; }
+
+.tripLabel { font-size: 0.8125rem; color: #6b7280; }
+
+.tripSelect {
+  border: 0;
+  background: transparent;
+  padding: 2px 0;
+  font-size: 1.0625rem;
+  font-weight: var(--weight-semibold);
+  color: #0f172a;
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+
+.tripDivider { height: 1px; background: var(--line); margin: var(--space-2) 0; }
+
+.tripIcons {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  flex: none;
+  padding: 2px 0;
+}
+
+.tripIconBtn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+}
+
+.tripIconBtnMuted {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  color: #4b5563;
+}
+
+/* --- Map ------------------------------------------------------------ */
+
+.mapPane { flex: 1; min-height: 300px; min-width: 0; position: relative; margin-top: var(--space-3); }
+
+.recenterFab {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 500;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--surface);
+  color: #0f172a;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.22);
+}
+
+.recenterFab:active { background: var(--ground); }
+
+/* --- Bottom stack: shuttle cards + CTA ------------------------------ */
+
+.bottomStack {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  background: #edf0f4;
+}
+
+.shuttleCards {
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.1);
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  overflow: hidden;
+}
+
+.shuttleCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: 0;
+  text-align: left;
+  min-width: 0;
+}
+
+.shuttleCard + .shuttleCard { border-left: 1px solid var(--line); }
+
+.shuttleCardSelected { background: #eff6ff; }
+
+.busArt { width: 76px; height: 44px; flex: none; }
+
+.shuttleMeta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+.shuttleName {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 1rem;
+  font-weight: var(--weight-bold);
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.shuttleName svg { color: #6b7280; flex: none; }
+
+.shuttleStatus { display: flex; align-items: center; gap: var(--space-2); }
+
+.statusDot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.statusDotLive { background: #16a34a; }
+.statusDotOffline { background: #ef4444; }
+
+.statusLive { color: #16a34a; font-weight: var(--weight-medium); }
+.statusOffline { color: #ef4444; font-weight: var(--weight-medium); }
+
+.shuttleEmpty {
+  padding: var(--space-4);
+  color: var(--ink-tertiary);
+  font-size: var(--text-small);
+  text-align: center;
+  grid-column: 1 / -1;
+}
+
+.cta {
+  border: 0;
+  border-radius: 16px;
+  background: #1f66e5;
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: var(--weight-semibold);
+  padding: var(--space-4);
+  min-height: 60px;
+  box-shadow: 0 6px 20px rgba(31, 102, 229, 0.35);
+}
+
+.cta:active { background: #1a56c4; }
+
+.cta:disabled { opacity: 0.7; }
+
+.ctaError {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--danger);
+  text-align: center;
+}
+
+.detailsToggle {
+  border: 0;
+  background: transparent;
+  color: var(--ink-tertiary);
+  font-size: var(--text-small);
+  padding: var(--space-1);
+}
+
+.detailsBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-height: 40dvh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+/* --- Reused detail blocks (bus cards, arrivals) ---------------------- */
 
 .busHead {
   display: flex;
@@ -68,7 +389,7 @@
 
 .busDetail { margin-top: var(--space-2); color: var(--ink-secondary); }
 
-/* --- Arrivals list ------------------------------------------------ */
+.liveNote { font-size: var(--text-small); color: var(--ink-secondary); }
 
 .arrivalsLabel {
   font-size: var(--text-micro);
@@ -106,142 +427,33 @@
   white-space: nowrap;
 }
 
-/* The next arrival, highlighted — the one line the student came for. */
 .arrivalNext { color: var(--accent); font-weight: var(--weight-semibold); }
 
-/* --- Mobile sheet -------------------------------------------------- */
-
-/* The map is the point of this screen, so the sheet peeks rather than
-   covering it. Collapsed it shows one line per bus; tapping the handle
-   expands it to the full panel. */
-
-.sheet {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: var(--tabbar-height);
-  z-index: 450;
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border-top: 1px solid var(--line);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  box-shadow: var(--shadow-sheet);
-  transition: max-height var(--duration) var(--ease);
-  max-height: 34dvh;
-}
-
-.sheetExpanded { max-height: 78dvh; }
-
-/* Dismissed sheet: a small floating pill reopens it. The map underneath
-   is fully visible, which is the point — the peek bar must never be a
-   permanent cover over stops. */
-.reopen {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(var(--tabbar-height) + var(--space-3));
-  z-index: 450;
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
-  box-shadow: var(--shadow-panel);
-  font-size: var(--text-small);
-  font-weight: var(--weight-semibold);
-  color: var(--ink);
-}
-
-.sheetTop {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-  padding-right: var(--space-3);
-}
-
-.sheetClose {
-  flex: none;
-  margin-top: var(--space-2);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--ink-tertiary);
-  font-size: 1.125rem;
-  line-height: 1;
-}
-
-.sheetClose:hover { background: var(--ground); color: var(--ink); }
-
-/* The handle is the main tap target, not just the little bar.
-   The dismiss (×) sits beside it. */
-.sheetHandle {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  padding: var(--space-3) var(--space-5) var(--space-2);
-  background: transparent;
-  border: 0;
-  flex: none;
-}
-
-.grabber {
-  width: 38px;
-  height: 4px;
-  border-radius: var(--radius-pill);
-  background: var(--line-strong);
-}
-
-.sheetHint {
-  font-size: var(--text-small);
-  color: var(--ink-tertiary);
-}
-
-.sheetBody {
-  overflow-y: auto;
-  padding: 0 var(--space-5) var(--space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-/* Collapsed: one compact line per bus instead of the full cards. */
-.peek {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: 0 var(--space-5) var(--space-4);
-}
-
-.peekRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.peekLabel {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-weight: var(--weight-semibold);
-}
-
-.peekValue {
-  font-family: var(--font-mono);
-  font-size: var(--text-small);
-  color: var(--ink-secondary);
-}
-
-.peekMuted { color: var(--ink-tertiary); }
-
 @media (min-width: 900px) {
+  .split { flex-direction: row; }
+  .mapColumn { position: relative; }
   .panel { display: flex; }
-  .sheet { display: none; }
-  .header { padding: var(--space-8) var(--space-8) var(--space-5); }
-  .summary { font-size: var(--text-body); margin-top: var(--space-2); }
+  .tripCard {
+    position: absolute;
+    top: var(--space-5);
+    left: var(--space-5);
+    right: auto;
+    width: min(520px, calc(100% - var(--space-10)));
+    margin: 0;
+    z-index: 500;
+  }
+  .mapPane { margin-top: 0; }
+  .bottomStack {
+    position: absolute;
+    left: var(--space-5);
+    right: var(--space-5);
+    bottom: var(--space-5);
+    background: transparent;
+    padding: 0;
+    z-index: 500;
+  }
+  .shuttleCards { max-width: 640px; }
+  .cta { max-width: 640px; }
+  .detailsBody { display: none; }
+  .detailsToggle { display: none; }
 }

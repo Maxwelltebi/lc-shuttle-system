@@ -29,7 +29,7 @@
 
 /* --- Markers ------------------------------------------------------ */
 
-/* Numbered stop circle. Amber when it is the bus's next stop. */
+/* Numbered stop circle. Blue when it is the bus's next stop. */
 .stopMarker {
   display: grid;
   place-items: center;
@@ -45,66 +45,93 @@
 }
 
 .stopMarkerNext {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--ink-on-dark);
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #ffffff;
 }
 
-/* Bus avatar: a real bus glyph in a badge, dark when live, grey when
-   the ping has gone stale. Replaces the old dot-and-chip. */
-.busAvatar {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 6px 10px 6px 6px;
-  border-radius: var(--radius-pill);
-  background: var(--ink);
-  color: var(--ink-on-dark);
-  font-size: var(--text-small);
-  font-weight: var(--weight-semibold);
-  white-space: nowrap;
-  box-shadow: var(--shadow-panel);
-  border: 2px solid #ffffff;
+/* On small phones the trip card overlays the top of the map, so the
+   default top-left zoom buttons would sit underneath it. Pinch zoom
+   still works; the recenter FAB handles one-tap reframing. */
+@media (max-width: 899px) {
+  .wrap :global(.leaflet-top.leaflet-left) { display: none; }
 }
 
-.busAvatarLive { background: var(--ink); }
-
-.busAvatarLive .busGlyph { color: #7ee2ae; }
-
-.busAvatarOffline { background: var(--offline); }
-.busAvatarOffline .busGlyph { color: var(--surface); opacity: 0.85; }
-
-.busGlyph {
-  width: 26px;
-  height: 26px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  padding: 4px;
+/* Rider position: blue pin over a dot with expanding rings. */
+.userPin {
+  position: relative;
+  display: block;
+  width: 72px;
+  height: 72px;
 }
 
-.busAvatarLabel { padding-right: 2px; }
-
-/* Live buses get a soft pulse ring so they read as moving vehicles. */
-.busAvatarLive::after {
-  content: '';
+.userPinGlyph {
   position: absolute;
-  inset: -6px;
-  border-radius: var(--radius-pill);
-  border: 2px solid rgba(58, 158, 112, 0.45);
-  animation: busPulse 2.2s ease-out infinite;
+  left: 50%;
+  top: 0;
+  width: 30px;
+  height: 40px;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 3px 4px rgba(15, 23, 42, 0.35));
+}
+
+.userDot {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  width: 18px;
+  height: 18px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #1d4ed8;
+  border: 3px solid #ffffff;
+  box-shadow: 0 1px 6px rgba(29, 78, 216, 0.5);
+}
+
+.userRing {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 38px;
+  height: 38px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(29, 78, 216, 0.25);
+  animation: userRing 2.4s ease-out infinite;
   pointer-events: none;
 }
 
-.busAvatar { position: relative; }
+.userRingB { animation-delay: 1.2s; }
 
-@keyframes busPulse {
-  0% { transform: scale(0.92); opacity: 0.9; }
-  70% { transform: scale(1.08); opacity: 0; }
-  100% { transform: scale(1.08); opacity: 0; }
+@keyframes userRing {
+  0% { transform: translateX(-50%) scale(0.45); opacity: 0.9; }
+  100% { transform: translateX(-50%) scale(1.5); opacity: 0; }
 }
+
+/* Shuttle marker: white side-view bus with a blue window band. The
+   corner dot carries liveness so the bus itself never needs recoloring. */
+.shuttle {
+  position: relative;
+  display: block;
+  width: 64px;
+  height: 40px;
+  filter: drop-shadow(0 3px 4px rgba(15, 23, 42, 0.3));
+}
+
+.shuttleGlyph { display: block; width: 64px; height: 40px; }
+
+.shuttleDot {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+}
+
+.shuttleDotLive { background: #16a34a; }
+.shuttleDotOffline { background: #ef4444; }
 
 /* Off-loop destination diamond. */
 .destMarker {
