@@ -108,6 +108,10 @@ const busSchema = new Schema(
     lng: { type: Number, default: null },
     accuracyMeters: { type: Number, default: null },
     lastPingAt: { type: Date, default: null },
+    /** Device-measured GPS time, distinct from server receipt. */
+    measuredAt: { type: Date, default: null },
+    /** Last accepted per-device sequence; older retries rejected. */
+    lastSeq: { type: Number, default: null },
     nextStop: { type: Schema.Types.ObjectId, ref: 'Stop', default: null },
   },
   baseOptions,
@@ -139,6 +143,48 @@ waitingCheckInSchema.index({ stop: 1, status: 1, createdAt: 1 });
 waitingCheckInSchema.index({ student: 1, status: 1 });
 
 export const WaitingCheckIn = mongoose.model('WaitingCheckIn', waitingCheckInSchema);
+
+/* ------------------------------------------------------------------ */
+/* Counter — atomic reference numbering                                */
+/* ------------------------------------------------------------------ */
+
+const counterSchema = new Schema(
+  {
+    name: { type: String, required: true, unique: true },
+    value: { type: Number, required: true, default: 1000 },
+  },
+  baseOptions,
+);
+
+export const Counter = mongoose.model('Counter', counterSchema);
+
+/* ------------------------------------------------------------------ */
+/* EmailOutbox — durable delivery (Phase 3)                            */
+/* ------------------------------------------------------------------ */
+
+const emailOutboxSchema = new Schema(
+  {
+    rideRequest: { type: Schema.Types.ObjectId, ref: 'RideRequest', required: true },
+    rideSchedule: { type: Schema.Types.ObjectId, ref: 'RideSchedule', required: true },
+    to: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ['pending', 'sending', 'sent', 'failed'],
+      default: 'pending',
+    },
+    attempts: { type: Number, default: 0 },
+    nextRunAt: { type: Date, default: () => new Date() },
+    lastError: { type: String, default: null },
+    sentAt: { type: Date, default: null },
+    providerMessageId: { type: String, default: null },
+  },
+  baseOptions,
+);
+
+emailOutboxSchema.index({ status: 1, nextRunAt: 1 });
+emailOutboxSchema.index({ rideSchedule: 1 }, { unique: true });
+
+export const EmailOutbox = mongoose.model('EmailOutbox', emailOutboxSchema);
 
 /* ------------------------------------------------------------------ */
 /* RideRequest                                                         */
@@ -177,20 +223,18 @@ const rideScheduleSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'RideRequest',
       required: true,
+      unique: true,
     },
     driver: { type: Schema.Types.ObjectId, ref: 'Driver', required: true },
     tripAt: { type: Date, required: true },
     destination: { type: String, required: true },
     pickupLabel: { type: String, required: true },
-    /** Null until delivery actually succeeds. A saved schedule the
-     *  student never received is not a success. */
     sentAt: { type: Date, default: null },
     emailStatus: {
       type: String,
       enum: ['pending', 'sent', 'failed'],
       default: 'pending',
     },
-    /** Kept for the driver's retry, and for debugging bounces. */
     emailError: { type: String, default: null },
   },
   baseOptions,

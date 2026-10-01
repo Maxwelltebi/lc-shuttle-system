@@ -2,12 +2,15 @@ import './env.js';
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import { createServer } from 'node:http';
 import type { ApiError } from '../../shared/types';
 import { authRouter } from './routes/auth.js';
 import { stopsRouter } from './routes/stops.js';
 import { trackingRouter } from './routes/tracking.js';
 import { waitingRouter } from './routes/waiting.js';
 import { requestsRouter, schedulesRouter } from './routes/requests.js';
+import { attachSockets } from './socket.js';
+import { startEmailWorker } from './services/emailWorker.js';
 
 const PORT = Number(process.env.PORT ?? 4000);
 const MONGO_URL = process.env.MONGO_URL ?? 'mongodb://127.0.0.1:27017/lc-shuttle';
@@ -58,7 +61,10 @@ app.use(
 async function start() {
   await mongoose.connect(MONGO_URL);
   console.log(`Mongo connected: ${MONGO_URL}`);
-  app.listen(PORT, () => {
+  const http = createServer(app);
+  attachSockets(http);
+  startEmailWorker();
+  http.listen(PORT, () => {
     console.log(`LC Shuttle API on http://localhost:${PORT}`);
     console.log(`CORS origin: ${ORIGIN}`);
   });

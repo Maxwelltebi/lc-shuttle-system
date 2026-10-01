@@ -39,27 +39,57 @@ waitingRouter.get('/me', requireAuth, requireRole('student'), async (req, res) =
 /**
  * Check in at a stop (FR2.1, FR2.2).
  *
- * Any existing check-in is withdrawn in the same request rather than the
- * client deleting first — two round trips could leave a student counted
- * at two stops if the second one failed.
+ * Transactional: expire stale rows, withdraw any existing active
+ * check-in, then create the new one — so concurrent taps cannot leave
+ * a student counted at two stops.
  */
 waitingRouter.post('/', requireAuth, requireRole('student'), async (req, res) => {
   const stop = await Stop.findById(req.body?.stopId).lean();
   if (!stop) return fail(res, 422, 'validation_failed', 'No such stop.');
 
-  await WaitingCheckIn.updateMany(
-    { student: req.account._id, status: 'waiting' },
-    { status: 'withdrawn' },
-  );
-
-  const created = await WaitingCheckIn.create({
-    student: req.account._id,
-    stop: stop._id,
-    status: 'waiting',
-  });
-
-  const payload: CheckInType = toCheckIn(created.toObject());
-  return res.status(201).json(payload);
+  const mongoose = (await import('mongoose')).default;
+  const session = await mongoose.startSession();
+  try {
+    let created: unknown = null;
+    await session.withTransaction(async () => {
+      const cutoff = new Date(Date.now() - CHECKIN_TTL_MS);
+      await WaitingCheckIn.updateMany(
+        { status: 'waiting', createdAt: { $lt: cutoff } },
+        { status: 'expired' },
+        { session },
+      );
+      await WaitingCheckIn.updateMany(
+        { student: req.account._id, status: 'waiting' },
+        { status: 'withdrawn' },
+        { session },
+      );
+      const docs = await WaitingCheckIn.create(
+        [{ student: req.account._id, stop: stop._id, status: 'waiting' }],
+        { session },
+      );
+      created = docs[0];
+    });
+    const payload: CheckInType = toCheckIn((created as { toObject(): unknown }).toObject() as never);
+    return res.status(201).json(payload);
+  } catch (error) {
+    // Standalone MongoDB (no replica set) cannot run transactions —
+    // fall back to the ordered non-transactional path.
+    if (error instanceof Error && /transaction|replica/i.test(error.message)) {
+      await WaitingCheckIn.updateMany(
+        { student: req.account._id, status: 'waiting' },
+        { status: 'withdrawn' },
+      );
+      const created = await WaitingCheckIn.create({
+        student: req.account._id,
+        stop: stop._id,
+        status: 'waiting',
+      });
+      return res.status(201).json(toCheckIn(created.toObject()));
+    }
+    throw error;
+  } finally {
+    await session.endSession();
+  }
 });
 
 /** Student withdraws their own check-in (FR2.3). */

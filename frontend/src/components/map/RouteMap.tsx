@@ -18,8 +18,9 @@ interface RouteMapProps {
 /**
  * The shared Leaflet map.
  *
- * CARTO tiles over OpenStreetMap data, matching the attribution in the
- * designs. No API key, no billing account — see README "Map provider".
+ * Plain OpenStreetMap tiles. No API key, no billing account — see README
+ * "Map provider". CARTO was removed after it started gating tiles behind
+ * an API key.
  */
 export function RouteMap({ stops, buses, nextStopId, className }: RouteMapProps) {
   /* Dotted line through the stops in loop order, closing back to stop 1.
@@ -45,8 +46,9 @@ export function RouteMap({ stops, buses, nextStopId, className }: RouteMapProps)
         scrollWheelZoom
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          maxZoom={19}
         />
 
         <Polyline

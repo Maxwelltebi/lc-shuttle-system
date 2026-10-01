@@ -86,6 +86,8 @@ export function useLocationBroadcast(
           accuracyMeters: fix.coords.accuracy
             ? Math.round(fix.coords.accuracy)
             : null,
+          measuredAt: new Date(fix.timestamp).toISOString(),
+          seq: Date.now(),
         });
         setSending(true);
         setError(null);

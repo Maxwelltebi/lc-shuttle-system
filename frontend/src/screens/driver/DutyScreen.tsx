@@ -5,7 +5,7 @@ import { IconArrowRight, IconCheck } from '../../components/Icon';
 import { setNextStop, setOnDuty } from '../../api/tracking';
 import { fetchDemand } from '../../api/waiting';
 import { usePolling } from '../../hooks/usePolling';
-import { useLocationBroadcast } from '../../hooks/useLocationBroadcast';
+import { useTracking } from '../../hooks/TrackingProvider';
 import { useMyBus } from '../../hooks/useMyBus';
 import { useStops } from '../../hooks/useStops';
 import { Screen } from '../../layouts/Screen';
@@ -28,9 +28,9 @@ export function DutyScreen() {
   const [error, setError] = useState<ApiError | null>(null);
   const { data: demand } = usePolling<StopDemand[]>(fetchDemand, []);
 
-  /* The device's own broadcast (FR1.1). Without this the toggle would
-     flip a flag and no position would ever reach a student's map. */
-  const broadcast = useLocationBroadcast(bus?.id ?? null, bus?.onDuty ?? false);
+  /* Persistent broadcast lives in TrackingProvider (survives navigation
+     between Duty/Board/Queue). This screen only reads its state. */
+  const tracking = useTracking();
 
   const onDuty = bus?.onDuty ?? false;
   const totalWaiting = demand.reduce((sum, row) => sum + row.waitingCount, 0);
@@ -149,27 +149,25 @@ export function DutyScreen() {
           <Card>
             <p className={styles.gpsLabel}>GPS</p>
             <p className={styles.gps}>
-              {/* Truthful about what is actually being transmitted, read
-                  from the device rather than from the last saved ping. */}
               {!onDuty
                 ? 'Not sending.\nGo on duty to start broadcasting.'
-                : broadcast.position
-                  ? `${broadcast.position.coords.latitude.toFixed(5)}, ${broadcast.position.coords.longitude.toFixed(5)}\naccuracy ±${Math.round(broadcast.position.coords.accuracy)} m${
-                      bus.position
-                        ? `\nlast ping ${relativeTime(bus.position.lastPingAt)}`
-                        : ''
-                    }`
+                : tracking.position
+                  ? `${tracking.position.lat.toFixed(5)}, ${tracking.position.lng.toFixed(5)}\naccuracy ±${tracking.position.accuracy ?? '?'} m${bus.position ? `\nlast ping ${relativeTime(bus.position.lastPingAt)}` : ''}\nvia ${tracking.transport}`
                   : 'Waiting for a position fix…'}
             </p>
+            {tracking.lastUploadError && onDuty ? <p className={styles.gpsLabel}>Upload: {tracking.lastUploadError}</p> : null}
           </Card>
 
-          {/* A denied permission means the bus silently never appears.
-              The driver has to be told, not left to wonder. */}
-          {onDuty && broadcast.error && (
+          {onDuty && tracking.permission === 'denied' ? (
             <Notice tone="error" title="Not broadcasting">
-              {broadcast.error}
+              Location permission is off. Students cannot see this bus until you allow it.
             </Notice>
-          )}
+          ) : null}
+          {onDuty && tracking.transport === 'offline' && tracking.permission !== 'denied' ? (
+            <Notice tone="error" title="Connection lost">
+              No connection. Positions resume automatically when it returns.
+            </Notice>
+          ) : null}
 
           <Card>
             <p className={styles.waitingTitle}>Waiting right now</p>

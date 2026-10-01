@@ -1,6 +1,7 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import type { QueueEntry, RideRequest as RideRequestType } from '../../../shared/types';
-import { RideRequest, RideSchedule, Stop, Student } from '../models/index.js';
+import { Counter, EmailOutbox, RideRequest, RideSchedule, Stop, Student } from '../models/index.js';
 import {
   fail,
   requireApprovedDriver,
@@ -13,14 +14,17 @@ import {
   toRideRequest,
   toSchedule,
 } from '../serialise.js';
-import { sendScheduleEmail } from '../services/email.js';
 
 export const requestsRouter = Router();
 
-/** Human-facing reference shown on the student's list: "RR-1042". */
+/** Human-facing reference shown on the student's list: "RR-1042". Atomic counter. */
 async function nextReference(): Promise<string> {
-  const count = await RideRequest.estimatedDocumentCount();
-  return `RR-${1000 + count + 1}`;
+  const counter = await Counter.findOneAndUpdate(
+    { name: 'rideRequest' },
+    { $inc: { value: 1 } },
+    { upsert: true, returnDocument: 'after' },
+  ).lean();
+  return `RR-${counter!.value}`;
 }
 
 /**
@@ -215,9 +219,10 @@ requestsRouter.post(
 /**
  * Submit the schedule and email it (FR3.6, FR3.7).
  *
- * The schedule is saved before the email is attempted, and a send
- * failure does not roll it back — losing the trip because a mail server
- * was down would be worse than a driver having to press Resend.
+ * Transactional: valid owned non-expired claim required; exactly one
+ * schedule per request (unique index + idempotent return); schedule +
+ * request update + email outbox job committed together. Trip creation
+ * never fails because the mail provider is down — the worker retries.
  */
 requestsRouter.post(
   '/:id/schedule',
@@ -225,13 +230,6 @@ requestsRouter.post(
   requireRole('driver'),
   requireApprovedDriver,
   async (req, res) => {
-    const request = await RideRequest.findById(req.params.id);
-    if (!request) return fail(res, 404, 'not_found', 'No such request.');
-
-    if (String(request.get('claimedBy')) !== String(req.account._id)) {
-      return fail(res, 403, 'forbidden', 'You have not claimed that request.');
-    }
-
     const tripAt = req.body?.tripAt ? new Date(req.body.tripAt) : null;
     if (!tripAt || Number.isNaN(tripAt.getTime())) {
       return fail(res, 422, 'validation_failed', 'Pick a date and time.', {
@@ -239,48 +237,164 @@ requestsRouter.post(
       });
     }
 
-    const student = await Student.findById(request.get('student')).lean();
-    if (!student) return fail(res, 404, 'not_found', 'That student no longer exists.');
-
-    const schedule = await RideSchedule.create({
-      rideRequest: request._id,
-      driver: req.account._id,
-      tripAt,
-      destination: request.get('destination'),
-      pickupLabel: request.get('pickupLabel'),
-      emailStatus: 'pending',
-    });
-
-    request.set({ status: 'scheduled' });
-    await request.save();
-
-    const result = await sendScheduleEmail({
-      to: student.email as string,
-      studentName: student.firstName as string,
-      driverName: `${req.account.firstName} ${req.account.lastName}`,
-      destination: request.get('destination'),
-      pickupLabel: request.get('pickupLabel'),
-      tripAt,
-    });
-
-    schedule.set({
-      emailStatus: result.ok ? 'sent' : 'failed',
-      sentAt: result.ok ? new Date() : null,
-      emailError: result.error,
-    });
-    await schedule.save();
-
-    return res.status(201).json(toSchedule(schedule.toObject()));
+    const session = await mongoose.startSession();
+    try {
+      let scheduleDoc: unknown = null;
+      await session.withTransaction(async () => {
+        const request = await RideRequest.findById(req.params.id).session(session);
+        if (!request) {
+          const err = new Error('No such request.') as Error & { statusCode?: number };
+          err.statusCode = 404;
+          throw err;
+        }
+        // Enforce expiry during mutation: past requestedAt ⇒ expired.
+        if ((request.get('requestedAt') as Date).getTime() < Date.now() && request.get('status') === 'open') {
+          request.set({ status: 'expired' });
+          await request.save({ session });
+          const err = new Error('That request has expired.') as Error & { statusCode?: number };
+          err.statusCode = 410;
+          throw err;
+        }
+        // Stuck-claim release during mutation.
+        const claimedAt = request.get('claimedAt') as Date | null;
+        if (
+          request.get('status') === 'claimed' &&
+          claimedAt &&
+          claimedAt.getTime() < Date.now() - CLAIM_TIMEOUT_MS
+        ) {
+          request.set({ status: 'open', claimedBy: null, claimedAt: null });
+          await request.save({ session });
+        }
+        if (String(request.get('claimedBy')) !== String(req.account._id) || request.get('status') !== 'claimed') {
+          const err = new Error('You have not claimed that request.') as Error & { statusCode?: number };
+          err.statusCode = 403;
+          throw err;
+        }
+        // Idempotent: repeat scheduling returns the existing schedule.
+        const existing = await RideSchedule.findOne({ rideRequest: request._id }).session(session);
+        if (existing) {
+          scheduleDoc = existing;
+          return;
+        }
+        const student = await Student.findById(request.get('student')).session(session).lean();
+        if (!student) {
+          const err = new Error('That student no longer exists.') as Error & { statusCode?: number };
+          err.statusCode = 404;
+          throw err;
+        }
+        const [schedule] = await RideSchedule.create(
+          [
+            {
+              rideRequest: request._id,
+              driver: req.account._id,
+              tripAt,
+              destination: request.get('destination'),
+              pickupLabel: request.get('pickupLabel'),
+              emailStatus: 'pending',
+            },
+          ],
+          { session },
+        );
+        request.set({ status: 'scheduled' });
+        await request.save({ session });
+        await EmailOutbox.create(
+          [
+            {
+              rideRequest: request._id,
+              rideSchedule: schedule._id,
+              to: (student.email as string) ?? '',
+              status: 'pending',
+              attempts: 0,
+              nextRunAt: new Date(),
+            },
+          ],
+          { session },
+        );
+        scheduleDoc = schedule;
+      });
+      const plain = (scheduleDoc as { toObject(): unknown }).toObject();
+      return res.status(201).json(toSchedule(plain as never));
+    } catch (error) {
+      if (error instanceof Error && (error as Error & { statusCode?: number }).statusCode) {
+        const code = (error as Error & { statusCode?: number }).statusCode!;
+        if (code === 404) return fail(res, 404, 'not_found', error.message);
+        if (code === 410) return fail(res, 410, 'validation_failed', error.message);
+        return fail(res, 403, 'forbidden', error.message);
+      }
+      // Duplicate schedule race → return existing (idempotent).
+      if (error instanceof Error && /duplicate key/i.test(error.message)) {
+        const existing = await RideSchedule.findOne({ rideRequest: req.params.id }).lean();
+        if (existing) return res.status(200).json(toSchedule(existing));
+      }
+      // Standalone Mongo fallback: non-transactional idempotent path.
+      if (error instanceof Error && /transaction|replica/i.test(error.message)) {
+        const request = await RideRequest.findById(req.params.id);
+        if (!request) return fail(res, 404, 'not_found', 'No such request.');
+        if (String(request.get('claimedBy')) !== String(req.account._id)) {
+          return fail(res, 403, 'forbidden', 'You have not claimed that request.');
+        }
+        const existing = await RideRequest.db.collection('rideschedules').findOne({ rideRequest: request._id });
+        if (existing) return res.status(200).json(toSchedule(existing));
+        const student = await Student.findById(request.get('student')).lean();
+        if (!student) return fail(res, 404, 'not_found', 'That student no longer exists.');
+        const schedule = await RideSchedule.create({
+          rideRequest: request._id,
+          driver: req.account._id,
+          tripAt,
+          destination: request.get('destination'),
+          pickupLabel: request.get('pickupLabel'),
+          emailStatus: 'pending',
+        });
+        request.set({ status: 'scheduled' });
+        await request.save();
+        await EmailOutbox.create({
+          rideRequest: request._id,
+          rideSchedule: schedule._id,
+          to: student.email as string,
+          status: 'pending',
+        });
+        return res.status(201).json(toSchedule(schedule.toObject()));
+      }
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   },
 );
 
 /**
- * Retry a failed schedule email.
+ * Retry a failed schedule email — enqueues a durable outbox job.
  *
  * Mounted separately at /api/schedules so the path matches what the
  * frontend already calls — see INTEGRATION.md.
  */
 export const schedulesRouter = Router();
+
+schedulesRouter.get(
+  '/failed',
+  requireAuth,
+  requireRole('driver'),
+  requireApprovedDriver,
+  async (_req, res) => {
+    const jobs = await EmailOutbox.find({ status: { $in: ['pending', 'failed'] } })
+      .sort({ nextRunAt: 1 })
+      .limit(50)
+      .lean();
+    return res.json(
+      jobs.map((j) => ({
+        id: String(j._id),
+        rideRequestId: String(j.rideRequest),
+        scheduleId: String(j.rideSchedule),
+        to: j.to,
+        status: j.status,
+        attempts: j.attempts,
+        nextRunAt: (j.nextRunAt as Date).toISOString(),
+        lastError: (j.lastError as string | null) ?? null,
+        sentAt: j.sentAt ? (j.sentAt as Date).toISOString() : null,
+      })),
+    );
+  },
+);
 
 schedulesRouter.post(
   '/:id/resend',
@@ -295,20 +409,24 @@ schedulesRouter.post(
     const student = request ? await Student.findById(request.student).lean() : null;
     if (!student) return fail(res, 404, 'not_found', 'That student no longer exists.');
 
-    const result = await sendScheduleEmail({
-      to: student.email as string,
-      studentName: student.firstName as string,
-      driverName: `${req.account.firstName} ${req.account.lastName}`,
-      destination: schedule.get('destination'),
-      pickupLabel: schedule.get('pickupLabel'),
-      tripAt: schedule.get('tripAt'),
-    });
-
-    schedule.set({
-      emailStatus: result.ok ? 'sent' : 'failed',
-      sentAt: result.ok ? new Date() : null,
-      emailError: result.error,
-    });
+    // Deduplicate: reuse the existing job if still queued.
+    const existing = await EmailOutbox.findOne({ rideSchedule: schedule._id });
+    if (existing && ['pending', 'sending'].includes(existing.get('status') as string)) {
+      return res.json(toSchedule(schedule.toObject()));
+    }
+    await EmailOutbox.findOneAndUpdate(
+      { rideSchedule: schedule._id },
+      {
+        rideRequest: schedule.get('rideRequest'),
+        rideSchedule: schedule._id,
+        to: student.email as string,
+        status: 'pending',
+        nextRunAt: new Date(),
+        lastError: null,
+      },
+      { upsert: true },
+    );
+    schedule.set({ emailStatus: 'pending' });
     await schedule.save();
 
     return res.json(toSchedule(schedule.toObject()));

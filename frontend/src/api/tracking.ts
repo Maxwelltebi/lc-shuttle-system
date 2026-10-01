@@ -51,11 +51,28 @@ export function setNextStop(busId: string, stopId: string) {
 /** Position ping from the driver's device, every 10 seconds while on duty. */
 export function pingPosition(
   busId: string,
-  position: { lat: number; lng: number; accuracyMeters: number | null },
+  position: { lat: number; lng: number; accuracyMeters: number | null; measuredAt: string; seq: number },
 ) {
   return request<null>(`/api/buses/${busId}/ping`, {
     method: 'POST',
     body: JSON.stringify(position),
     fallback: null,
   });
+}
+
+/** Persistent failed-email queue (Phase 3). */
+export function fetchFailedEmails() {
+  return request<
+    Array<{
+      id: string;
+      rideRequestId: string;
+      scheduleId: string;
+      to: string;
+      status: string;
+      attempts: number;
+      nextRunAt: string;
+      lastError: string | null;
+      sentAt: string | null;
+    }>
+  >('/api/schedules/failed', { fallback: [] });
 }

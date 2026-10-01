@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Badge, Card, EmptyState, Notice, StatusPill } from '../../components';
 import { RouteMap } from '../../components/map/RouteMap';
 import { fetchArrivals, fetchBuses, fetchServiceStatus } from '../../api/tracking';
 import { fetchMyCheckIn } from '../../api/waiting';
 import { usePolling } from '../../hooks/usePolling';
+import { useSocket } from '../../hooks/useSocket';
 import { useStops } from '../../hooks/useStops';
 import type { Bus, Stop, StopArrival } from '../../types';
 import styles from './MapScreen.module.css';
@@ -11,14 +12,36 @@ import styles from './MapScreen.module.css';
 /**
  * The student's home screen — where is the bus, and when does it reach me.
  *
- * Renders empty until a driver goes on duty: stops and the loop line are
- * drawn (real data), but there are no bus pins and no arrival times.
+ * Socket primary, HTTP polling fallback every 10s while disconnected.
+ * Shows last saved location with its age when live updates stop.
  */
 export function MapScreen() {
   const stops = useStops();
-  const { data: buses } = usePolling<Bus[]>(fetchBuses, []);
+  const [liveBuses, setLiveBuses] = useState<Bus[] | null>(null);
+  const { data: polledBuses, error: busesError } = usePolling<Bus[]>(fetchBuses, []);
   const { data: service } = usePolling(fetchServiceStatus, null, 60_000);
   const { data: checkIn } = usePolling(fetchMyCheckIn, null, 30_000);
+
+  const { state: socketState } = useSocket(
+    useCallback((snapshot: Bus[]) => setLiveBuses(snapshot), []),
+    useCallback((bus: Bus) => {
+      setLiveBuses((prev) => {
+        if (!prev) return [bus];
+        const idx = prev.findIndex((b) => b.id === bus.id);
+        if (idx < 0) return [...prev, bus];
+        const next = [...prev];
+        next[idx] = bus;
+        return next;
+      });
+    }, []),
+  );
+
+  // Fallback: use polled buses while socket has never delivered.
+  const buses = liveBuses ?? polledBuses;
+  // Keep polling as fallback when socket is down; live socket updates win otherwise.
+  useEffect(() => {
+    if (socketState === 'disconnected') setLiveBuses(null);
+  }, [socketState]);
 
   /* Arrival estimates for the bus the panel is showing. Refetched on the
      same cadence as positions, since one moves the other. */
@@ -53,6 +76,8 @@ export function MapScreen() {
             .map((bus) => busSummaryLine(bus))
             .filter(Boolean)
             .join(' ');
+  const liveNote =
+    socketState === 'connected' ? 'Live updates.' : 'Reconnecting — showing last saved positions (10s refresh).';
 
   const panel = (
     <>
@@ -104,7 +129,8 @@ export function MapScreen() {
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Live map</h1>
-          <p className={styles.summary}>{summary}</p>
+          <p className={styles.summary}>{summary} {buses.length > 0 ? liveNote : ''}</p>
+          {busesError ? <p className={styles.summary}>Could not refresh positions. Showing last known.</p> : null}
         </div>
         {service && (
           <StatusPill
@@ -211,7 +237,7 @@ function BusCard({ bus, stopById }: { bus: Bus; stopById: Map<string, Stop> }) {
         <>
           <p className={styles.busHeadline}>{bus.label} — offline</p>
           <p className={styles.busDetail}>
-            No recent position. Showing the timetable instead.
+            No recent position{bus.position ? ` (last ${relativeAge(bus.position.lastPingAt)})` : ''}. Showing the timetable instead.
           </p>
         </>
       ) : (
@@ -220,7 +246,7 @@ function BusCard({ bus, stopById }: { bus: Bus; stopById: Map<string, Stop> }) {
             {bus.label}
             {nextStop ? ` → ${nextStop.name}` : ''}
           </p>
-          <p className={styles.busDetail}>{busSummaryLine(bus)}</p>
+          <p className={styles.busDetail}>{busSummaryLine(bus)}{bus.position ? ` Updated ${relativeAge(bus.position.lastPingAt)}.` : ''}</p>
         </>
       )}
     </Card>
@@ -300,4 +326,10 @@ function formatArrival(arrival: StopArrival | undefined): string {
   if (arrival.etaMinutes !== null) return `${arrival.etaMinutes} min`;
   if (arrival.scheduledClock) return arrival.scheduledClock;
   return '—';
+}
+
+function relativeAge(iso: string): string {
+  const s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 60) return `${s}s ago`;
+  return `${Math.round(s / 60)} min ago`;
 }

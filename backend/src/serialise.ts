@@ -110,10 +110,12 @@ export function toBus(doc: Doc, scheduleOffsetMinutes: number | null): Bus {
             lng: doc.lng,
             lastPingAt: iso(doc.lastPingAt),
             accuracyMeters: doc.accuracyMeters ?? null,
+            measuredAt: isoOrNull(doc.measuredAt ?? null),
+            seq: typeof doc.lastSeq === 'number' ? doc.lastSeq : null,
           }
         : null,
     nextStopId: doc.onDuty ? idOrNull(doc.nextStop) : null,
-    scheduleOffsetMinutes: doc.onDuty ? scheduleOffsetMinutes : null,
+    scheduleOffsetMinutes: doc.onDuty && status === 'live' ? scheduleOffsetMinutes : null,
   };
 }
 

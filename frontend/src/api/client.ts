@@ -22,6 +22,10 @@ export function setAuthToken(token: string | null) {
   authToken = token;
 }
 
+export function getAuthToken() {
+  return authToken;
+}
+
 function toApiError(code: ApiErrorCode, message: string): ApiError {
   return { code, message };
 }

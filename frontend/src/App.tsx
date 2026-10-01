@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './layouts/AppShell';
 import { useNavCounts } from './hooks/useNavCounts';
+import { TrackingProvider } from './hooks/TrackingProvider';
 import { SignInScreen } from './screens/auth/SignInScreen';
 import { SignUpScreen } from './screens/auth/SignUpScreen';
 import { MapScreen } from './screens/student/MapScreen';
@@ -42,14 +43,16 @@ export default function App() {
 
   if (user.role === 'driver') {
     return (
-      <Routes>
-        <Route element={<AppShell nav={nav} user={user} onSignOut={endSession} />}>
-          <Route path="/duty" element={<DutyScreen />} />
-          <Route path="/board" element={<BoardScreen />} />
-          <Route path="/queue" element={<QueueScreen />} />
-          <Route path="*" element={<Navigate to="/board" replace />} />
-        </Route>
-      </Routes>
+      <TrackingProvider>
+        <Routes>
+          <Route element={<AppShell nav={nav} user={user} onSignOut={endSession} />}>
+            <Route path="/duty" element={<DutyScreen />} />
+            <Route path="/board" element={<BoardScreen />} />
+            <Route path="/queue" element={<QueueScreen />} />
+            <Route path="*" element={<Navigate to="/board" replace />} />
+          </Route>
+        </Routes>
+      </TrackingProvider>
     );
   }
 

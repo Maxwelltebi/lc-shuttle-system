@@ -90,7 +90,28 @@ export interface BusPosition {
   lastPingAt: string;
   /** GPS accuracy in metres, shown on the driver's on-duty screen. */
   accuracyMeters: number | null;
+  /** When the GPS fix was measured on the device. Distinct from
+   *  lastPingAt (server receipt). Null for legacy pings. */
+  measuredAt: string | null;
+  /** Monotonic per-device sequence. Used to reject older retries so
+   *  markers cannot move backward. Null for legacy pings. */
+  seq: number | null;
 }
+
+/** Driver → backend position update. Sent over socket primary,
+ *  HTTP fallback. measuredAt is device time, never trusted for
+ *  freshness alone — server receipt time still gates staleness. */
+export interface PositionPingInput {
+  lat: number;
+  lng: number;
+  accuracyMeters: number | null;
+  /** ISO timestamp from the device GPS fix. */
+  measuredAt: string;
+  /** Monotonic counter per driver session. */
+  seq: number;
+}
+
+export type TransportMode = 'socket' | 'http' | 'offline';
 
 /** One row in the arrivals list. The server computes these because it
  *  owns both the timetable offsets and the live positions. */
@@ -240,4 +261,22 @@ export interface AsyncState<T> {
   data: T;
   loading: boolean;
   error: ApiError | null;
+}
+
+/* ------------------------------------------------------------------ */
+/* Email outbox (Phase 3 — durable delivery)                           */
+/* ------------------------------------------------------------------ */
+
+export type OutboxStatus = 'pending' | 'sending' | 'sent' | 'failed';
+
+export interface EmailOutboxJob {
+  id: string;
+  rideRequestId: string;
+  scheduleId: string;
+  to: string;
+  status: OutboxStatus;
+  attempts: number;
+  nextRunAt: string;
+  lastError: string | null;
+  sentAt: string | null;
 }

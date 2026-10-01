@@ -7,13 +7,14 @@ import {
   requireAuth,
   requireRole,
 } from '../middleware/auth.js';
-import { toBus } from '../serialise.js';
+import { STALE_PING_MS, toBus } from '../serialise.js';
 import {
   computeArrivals,
   scheduleOffsetMinutes,
   serviceStatus,
   type StopTiming,
 } from '../services/schedule.js';
+import { isOutOfOrder, validatePing } from '../services/position.js';
 
 export const trackingRouter = Router();
 
@@ -64,15 +65,19 @@ trackingRouter.get('/buses/:id/arrivals', requireAuth, async (req, res) => {
   if (!bus) return fail(res, 404, 'not_found', 'No such bus.');
 
   const timings = await stopTimings();
+  // Same freshness rule as map status: stale GPS ⇒ timetable only.
+  const pingAge = bus.lastPingAt ? Date.now() - new Date(bus.lastPingAt as unknown as string).getTime() : Infinity;
+  const fresh = bus.onDuty && pingAge <= STALE_PING_MS;
+  const inService = serviceStatus().state === 'in_service';
   const position =
-    bus.onDuty && bus.lat !== null && bus.lng !== null
+    fresh && inService && bus.lat !== null && bus.lng !== null
       ? { lat: bus.lat as number, lng: bus.lng as number }
       : null;
 
   const arrivals: StopArrival[] = computeArrivals(
     timings,
     position,
-    bus.nextStop ? String(bus.nextStop) : null,
+    fresh && inService && bus.nextStop ? String(bus.nextStop) : null,
   ).map((arrival) => ({ ...arrival, busId: String(bus._id) }));
 
   return res.json(arrivals);
@@ -106,6 +111,8 @@ trackingRouter.post(
         lng: null,
         accuracyMeters: null,
         lastPingAt: null,
+        measuredAt: null,
+        lastSeq: null,
         nextStop: null,
       });
     }
@@ -151,8 +158,9 @@ trackingRouter.post(
 /**
  * Position ping from the driver's device, every 10 seconds (FR1.1).
  *
- * Rejected while off duty: a bus that is not running must not appear on
- * a student's map, whatever the device keeps sending.
+ * HTTP fallback path — socket primary uses the same validation via
+ * applyPositionUpdate(). Rejected while off duty; stale or out-of-order
+ * measurements rejected so markers cannot move backward.
  */
 trackingRouter.post(
   '/buses/:id/ping',
@@ -171,19 +179,45 @@ trackingRouter.post(
       return fail(res, 403, 'forbidden', 'You are off duty.');
     }
 
-    const { lat, lng, accuracyMeters } = req.body ?? {};
-    if (typeof lat !== 'number' || typeof lng !== 'number') {
-      return fail(res, 422, 'validation_failed', 'A position is required.');
+    const result = await applyPositionUpdate(String(bus._id), String(req.account._id), req.body ?? {});
+    if (!result.ok) {
+      const status = result.code === 'stale' ? 409 : 422;
+      return fail(res, status, 'validation_failed', result.message);
     }
-
-    bus.set({
-      lat,
-      lng,
-      accuracyMeters: typeof accuracyMeters === 'number' ? accuracyMeters : null,
-      lastPingAt: new Date(),
-    });
-    await bus.save();
 
     return res.json(null);
   },
 );
+
+/** Shared by HTTP ping and socket updates. Returns the saved bus. */
+export async function applyPositionUpdate(
+  busId: string,
+  driverId: string,
+  body: unknown,
+): Promise<{ ok: true } | { ok: false; message: string; code: 'invalid' | 'stale' }> {
+  const bus = await Bus.findById(busId);
+  if (!bus) return { ok: false, message: 'No such bus.', code: 'invalid' };
+  if (String(bus.get('driver')) !== String(driverId)) {
+    return { ok: false, message: 'That is not your bus.', code: 'invalid' };
+  }
+  if (!bus.get('onDuty')) {
+    return { ok: false, message: 'You are off duty.', code: 'invalid' };
+  }
+  const parsed = validatePing((body ?? {}) as never);
+  if (!parsed.ok) return { ok: false, message: parsed.message, code: 'invalid' };
+  const lastSeq = bus.get('lastSeq') as number | null;
+  const lastMeasured = bus.get('measuredAt') as Date | null;
+  if (isOutOfOrder(lastSeq, lastMeasured, parsed.value)) {
+    return { ok: false, message: 'Older update ignored.', code: 'stale' };
+  }
+  bus.set({
+    lat: parsed.value.lat,
+    lng: parsed.value.lng,
+    accuracyMeters: parsed.value.accuracyMeters,
+    measuredAt: parsed.value.measuredAt,
+    lastSeq: parsed.value.seq,
+    lastPingAt: new Date(),
+  });
+  await bus.save();
+  return { ok: true };
+}
